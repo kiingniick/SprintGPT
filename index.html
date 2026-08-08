@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SprintGPT — Launching…</title>
+  <meta name="theme-color" content="#0b0f17" />
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: #0b0f17; color: #e7ecf5;
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      text-align: center; padding: 24px;
+    }
+    .mark {
+      width: 64px; height: 64px; border-radius: 18px;
+      background: linear-gradient(135deg, #34d399, #22d3ee);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 34px; color: #04231b; margin-bottom: 18px;
+    }
+    h1 { font-size: 22px; margin: 0 0 6px; }
+    p { color: #93a0b8; margin: 0 0 18px; max-width: 440px; line-height: 1.5; }
+    a.btn {
+      display: inline-block; padding: 13px 20px; border-radius: 12px;
+      background: linear-gradient(135deg, #34d399, #22d3ee); color: #04231b;
+      font-weight: 800; text-decoration: none;
+    }
+    .spin {
+      width: 30px; height: 30px; border: 3px solid #26314a; border-top-color: #34d399;
+      border-radius: 50%; animation: s .8s linear infinite; margin-top: 20px;
+    }
+    @keyframes s { to { transform: rotate(360deg); } }
+    .muted { color: #6b7688; font-size: 12px; margin-top: 22px; }
+    code { color: #93a0b8; }
+  </style>
+</head>
+<body>
+  <div class="mark">S</div>
+  <h1>Opening SprintGPT…</h1>
+  <p id="status">Finding the current server address…</p>
+  <a id="manual" class="btn" href="#" style="display:none">Tap to open SprintGPT</a>
+  <div class="spin" id="spin"></div>
+  <div class="muted">If this doesn't open in a few seconds, tap the button above.</div>
+
+  <script>
+    // Always fetch the latest tunnel address (cache-busted) and forward to it.
+    var statusEl = document.getElementById("status");
+    var manual = document.getElementById("manual");
+    var spin = document.getElementById("spin");
+
+    function fail(msg) {
+      spin.style.display = "none";
+      statusEl.textContent = msg || "Couldn't reach the server right now. Please try again shortly.";
+    }
+
+    fetch("url.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("no url"); return r.json(); })
+      .then(function (data) {
+        var url = (data && data.url ? String(data.url) : "").trim();
+        if (!/^https?:\/\//.test(url)) throw new Error("bad url");
+        manual.href = url;
+        manual.style.display = "inline-block";
+        statusEl.textContent = "Taking you to SprintGPT…";
+        // Replace so the redirector isn't left in history.
+        window.location.replace(url);
+      })
+      .catch(function () {
+        fail("The SprintGPT server looks offline at the moment. Please try again in a minute.");
+      });
+  </script>
+</body>
+</html>
