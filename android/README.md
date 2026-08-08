@@ -1,16 +1,31 @@
-# SprintGPT for Android (native, on-device)
+# SprintGPT for Android (native app)
 
-This is a fully native Android app that **runs the SprintGPT Python/Flask server
-on the phone itself** (via [Chaquopy](https://chaquo.com/chaquopy/)) and displays
-it in a full-screen WebView. No internet connection or external server is needed —
-everything, including the database, lives on the device.
+A native Android app that displays SprintGPT in a full-screen WebView. On first
+launch it asks how to run:
+
+- **Run on this phone** — it starts the SprintGPT Python/Flask server *on the phone
+  itself* (via [Chaquopy](https://chaquo.com/chaquopy/)). No internet needed;
+  everything, including the database, lives on the device.
+- **Connect to a server** — it loads a SprintGPT you host yourself (see the repo
+  root `README.md` → "Host it yourself"). Works over mobile data or Wi-Fi, and the
+  app and website share the same account and data.
+
+The choice is stored in `SharedPreferences` and can be changed anytime from the
+in-app **Account settings → App connection** link, the **Connection** menu item, or
+the connection-error screen (all navigate to the `sprintgpt://settings` scheme,
+which `MainActivity` intercepts to show the native setup screen).
 
 ## How it works
 
 - `app/src/main/python/android_main.py` starts the Flask app on `127.0.0.1:5000`,
-  storing its SQLite database in the app's private files directory.
-- `MainActivity.java` boots the embedded Python interpreter, then loads the local
-  server in a WebView (with a loading screen and auto-retry while the server warms up).
+  storing its SQLite database in the app's private files directory. It's only
+  launched in on-device mode.
+- `MainActivity.java` reads the saved mode. In on-device mode it boots the embedded
+  Python interpreter and loads `http://127.0.0.1:5000/` (with a loading screen and
+  auto-retry while the server warms up). In server mode it loads your URL directly
+  and shows a retry/error screen if it's unreachable.
+- The WebView's User-Agent is tagged with `SprintGPTApp/1.0` so the web app knows
+  it's running inside the app and shows the connection controls.
 
 ## Building the APK
 

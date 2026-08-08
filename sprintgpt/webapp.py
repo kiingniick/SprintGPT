@@ -174,8 +174,13 @@ def create_app() -> Flask:
                 account["bot_name"] = row["bot_name"] or "Coach"
                 account["is_admin"] = _is_admin_email(row["email"], uid, first_uid)
         palette = resolve_palette(theme_key, accent, accent2)
+        # The Android app tags its WebView User-Agent so we can surface the
+        # "App connection" control (which lets people switch between running
+        # on-device and connecting to a hosted server).
+        is_app = "SprintGPTApp" in (request.headers.get("User-Agent") or "")
         return {
             "account": account,
+            "is_app": is_app,
             "theme_css": palette_to_css(palette),
             "current_theme": theme_key,
             "custom_accent": accent or palette["accent"],

@@ -59,6 +59,17 @@
   </div>
 </div>
 
+{% if is_app %}
+<div class="card account-signout">
+  <div>
+    <strong>App connection</strong>
+    <p class="hint">Choose whether SprintGPT runs on this phone (offline) or connects to a
+      server you host. Switching lets the app and website share the same data.</p>
+  </div>
+  <a class="btn" href="sprintgpt://settings">Change connection</a>
+</div>
+{% endif %}
+
 <div class="card account-signout">
   <div>
     <strong>Signed in as {{ user['email'] }}</strong>

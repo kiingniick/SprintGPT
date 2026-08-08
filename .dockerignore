@@ -1,0 +1,16 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.env
+.secret_key
+sprintgpt.db
+sprintgpt.db-wal
+sprintgpt.db-shm
+android/
+*.apk
+_smoke_*.py
+_diag_*.py

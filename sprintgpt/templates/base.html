@@ -37,6 +37,7 @@
       <a href="{{ url_for('plan') }}" class="{{ 'active' if ep == 'plan' }}">Training Plan</a>
       <a href="{{ url_for('splits') }}" class="{{ 'active' if ep == 'splits' }}">Splits</a>
       {% if account.is_admin %}<a href="{{ url_for('admin') }}" class="{{ 'active' if ep == 'admin' }}">Admin</a>{% endif %}
+      {% if is_app %}<a href="sprintgpt://settings">Connection</a>{% endif %}
       <a href="{{ url_for('docs') }}" class="{{ 'active' if ep == 'docs' }}">Documentation</a>
       <a href="{{ url_for('welcome') }}" class="{{ 'active' if ep == 'welcome' }}">Guide</a>
     </nav>
@@ -67,6 +68,7 @@
 
   <footer class="footer">
     SprintGPT is a training aid, not medical advice. Listen to your body.
+    {% if is_app %}<br /><a class="footer-link" href="sprintgpt://settings">App connection settings</a>{% endif %}
   </footer>
 
   <!-- App-style bottom navigation (mobile only, signed-in) -->

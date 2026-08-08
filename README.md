@@ -24,6 +24,7 @@ personalized training plan — all built **by runners, for runners**.
 - [What you get](#-what-you-get)
 - [Bringing in your runs](#-bringing-in-your-runs)
 - [Using it on your phone](#-using-it-on-your-phone)
+- [Host it yourself (run over the internet)](#-host-it-yourself-run-over-the-internet)
 - [Your account & settings](#-your-account--settings)
 - [The built‑in coach](#-the-built-in-coach)
 - [For app owners & admins](#-for-app-owners--admins)
@@ -86,12 +87,19 @@ Pick your device below for step-by-step install instructions.
 <details>
 <summary><b>🤖 Android — install the native app (APK)</b></summary>
 
-SprintGPT ships as a **fully native Android app** that runs entirely on your phone — no server or internet connection needed.
+SprintGPT ships as a **fully native Android app**. On first launch it asks how you want to run:
+
+- **Run on this phone** — everything stays on your device and works **fully offline**. No server, no account sharing.
+- **Connect to a server** — point the app at a SprintGPT you [host yourself](#-host-it-yourself-run-over-the-internet). It runs over **mobile data or Wi-Fi**, and the app and website share the **same account and runs**.
+
+Install steps:
 
 1. On your phone, open the [latest release](https://github.com/kiingniick/SprintGPT/releases/latest) and download **`SprintGPT-<version>.apk`**.
 2. Tap the downloaded file. If prompted, allow **Install from unknown sources** for your browser or files app.
-3. Open **SprintGPT**. The first launch takes a few seconds to unpack its built-in Python runtime, then you're in.
+3. Open **SprintGPT** and pick a mode. (On-device mode takes a few seconds the first time to unpack its built-in Python runtime.)
 
+> You can switch modes anytime: open **Account settings → App connection**, or tap **Connection** in the menu.
+>
 > Requires a 64-bit (`arm64-v8a`) device — virtually every phone from the last several years. The APK is debug-signed for easy sideloading.
 </details>
 
@@ -254,19 +262,110 @@ and runs import automatically. Use **Sync latest runs** anytime, or **Disconnect
 
 ## 📱 Using it on your phone
 
-SprintGPT is a mobile‑first Progressive Web App:
+Three ways, from simplest to most connected:
 
-1. Run it bound to your local network:
-   ```bash
-   python main.py --host 0.0.0.0 --port 5000 --no-browser
-   ```
-2. On your phone (same Wi‑Fi), open `http://<your-computer-ip>:5000`.
-3. In the browser menu, choose **Add to Home Screen** / **Install app**. It launches
-   full‑screen with an app‑style bottom tab bar.
+- **Native app, offline** — install the [Android APK](#-install-by-platform) and choose
+  **Run on this phone**. Works with no internet at all.
+- **Native app, over data** — install the APK, choose **Connect to a server**, and enter
+  your [self-hosted URL](#-host-it-yourself-run-over-the-internet). Works on mobile data
+  and syncs with the website.
+- **Web app (PWA)** — on the same Wi‑Fi as your computer:
+  1. Run it bound to your local network:
+     ```bash
+     python main.py --host 0.0.0.0 --port 5000 --no-browser
+     ```
+  2. On your phone, open `http://<your-computer-ip>:5000`.
+  3. In the browser menu, choose **Add to Home Screen** / **Install app** for a
+     full‑screen, app‑style experience.
 
-> The app shell is cached by a service worker for fast, offline‑friendly loads. For
-> installability over the network, browsers may require HTTPS — a tool like `ngrok` or
-> a Cloudflare tunnel gives you a quick HTTPS URL.
+> The app shell is cached by a service worker for fast, offline‑friendly loads. To use
+> the PWA over mobile data (not just local Wi‑Fi), host it publicly — see below.
+
+---
+
+## 🌐 Host it yourself (run over the internet)
+
+Want your runs on **every device over mobile data**, with the phone app and website
+sharing one account? Run SprintGPT as a real server. It's the same app — just served by
+a production web server (**waitress**) instead of the local dev server.
+
+```bash
+pip install -r requirements.txt
+python serve.py            # listens on 0.0.0.0:8000 (set PORT to change)
+```
+
+Then put it behind HTTPS and point your phone at it (**Connect to a server** → your URL).
+Pick the setup that fits you:
+
+<details>
+<summary><b>🐳 Docker (recommended — one command)</b></summary>
+
+```bash
+docker build -t sprintgpt .
+docker run -d -p 8000:8000 -v sprintgpt-data:/data \
+  -e SPRINTGPT_SECRET="$(openssl rand -hex 32)" \
+  -e APP_BASE_URL="https://sprintgpt.example.com" \
+  sprintgpt
+```
+
+- The `-v sprintgpt-data:/data` volume keeps your database and session key across
+  restarts and upgrades (the DB lives at `/data/sprintgpt.db`).
+- Front it with a reverse proxy that terminates HTTPS (Caddy, Nginx, or a Cloudflare
+  Tunnel). SprintGPT already trusts `X-Forwarded-*`, so external links stay `https://`.
+</details>
+
+<details>
+<summary><b>☁️ A host with buildpacks (Render, Railway, Fly, Heroku-style)</b></summary>
+
+A `Procfile` is included (`web: python serve.py`). Most platforms will:
+
+1. Detect Python and install `requirements.txt`.
+2. Start the `web` process (they inject `PORT`; `serve.py` reads it automatically).
+3. Terminate HTTPS for you at their edge.
+
+Set these environment variables in the dashboard, then deploy:
+
+```
+SPRINTGPT_SECRET=<a long random string>   # keeps everyone logged in across restarts
+APP_BASE_URL=https://your-app.onrender.com # used for links in password-reset emails
+SPRINTGPT_DB=/data/sprintgpt.db            # point at a persistent disk/volume
+```
+</details>
+
+<details>
+<summary><b>🖥️ A plain server / VPS (systemd + reverse proxy)</b></summary>
+
+```bash
+git clone https://github.com/kiingniick/SprintGPT.git && cd SprintGPT
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+SPRINTGPT_SECRET=$(openssl rand -hex 32) PORT=8000 python serve.py
+```
+
+Keep it running with systemd (or `pm2`, `supervisor`, …) and put Caddy/Nginx in front
+for HTTPS. On Linux you can also use gunicorn if you prefer:
+
+```bash
+gunicorn --workers 1 --threads 8 --bind 0.0.0.0:8000 wsgi:app
+```
+
+> **Use one worker with several threads.** SprintGPT stores everything in a single
+> SQLite file (WAL mode is enabled for concurrency); a single threaded worker avoids
+> cross-process write locks and is plenty for a running club or small community.
+</details>
+
+**What to set for a public server**
+
+| Variable | Why it matters |
+| --- | --- |
+| `SPRINTGPT_SECRET` | Signs login cookies. Set a fixed random value so restarts don't log everyone out. |
+| `SPRINTGPT_DB` | Path to the SQLite file — point it at persistent storage you back up. |
+| `APP_BASE_URL` | Public `https://` base used to build password‑reset links in emails. |
+| `ADMIN_EMAILS` | Who can see the `/admin` analytics dashboard. |
+| `SMTP_*` | Optional — send real password‑reset emails (see below). |
+
+> Once it's live, open the app, choose **Connect to a server**, and paste your URL — or
+> just open the URL in any browser and **Install** it as a PWA. Same account everywhere.
 
 ---
 
@@ -382,7 +481,10 @@ python main.py cli profile --max-hr 190 --resting-hr 50
 ## 🗂️ Project layout
 
 ```
-main.py                  # launches the web app (or `cli` passthrough)
+main.py                  # local dev launcher for the web app (or `cli` passthrough)
+serve.py                 # production server (waitress) for hosting it publicly
+wsgi.py                  # WSGI entry point (gunicorn/waitress: `wsgi:app`)
+Dockerfile, Procfile     # container + buildpack deploy for self-hosting
 requirements.txt, .env.example, README.md, sample_runs.csv
 sprintgpt/
   webapp.py              # Flask app + routes (accounts, dashboard, docs, admin, sw.js)
