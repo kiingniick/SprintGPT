@@ -11,6 +11,8 @@ personalized training plan — all built **by runners, for runners**.
 ![Flask](https://img.shields.io/badge/Flask-web%20app-000000?logo=flask&logoColor=white)
 ![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?logo=pwa&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-2ea44f)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome%20%F0%9F%A4%9D-ff69b4)
+![Made to go](https://img.shields.io/badge/made%20to%20go-brrrrrr-9d4edd)
 
 ### 👉 [**Open SprintGPT (live)**](https://kiingniick.github.io/SprintGPT/) 👈
 
@@ -35,6 +37,7 @@ This one permanent link always opens the current live server — bookmark it, sh
 - [Command line (optional)](#-command-line-optional)
 - [How the coaching works](#-how-the-coaching-works)
 - [Project layout](#-project-layout)
+- [Contributing](#-contributing)
 - [License](#-license)
 
 ---
@@ -539,10 +542,38 @@ sprintgpt/
 
 ---
 
+## 🤝 Contributing
+
+PRs welcome — this project is meant to be hacked on. 🏃‍♂️💨
+
+```bash
+git clone https://github.com/kiingniick/SprintGPT.git
+cd SprintGPT
+python -m venv .venv && . .venv/bin/activate   # Windows: .\.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"                          # installs the package + dev tools
+python main.py
+```
+
+Then read the **[Contributing guide](CONTRIBUTING.md)** for the code layout, style
+(`ruff`), and our very serious naming convention:
+
+> **`<what you did>` goes brrrrrr**
+
+Bug reports and ideas go in [Issues](https://github.com/kiingniick/SprintGPT/issues)
+(there are templates). Be nice, keep PRs small, drink milk. 🥛
+
+---
+
+## 📜 License
+
+Released under the [MIT License](LICENSE) — do basically whatever, just keep the notice.
+
+---
+
 <div align="center">
 
 **SprintGPT is a training aid, not medical advice. Listen to your body.** 💚
 
-Released under the [MIT License](https://github.com/kiingniick/SprintGPT/blob/main/LICENSE).
+Made to go **brrrrrr** by runners, for runners.
 
 </div>

@@ -1,0 +1,13 @@
+# SprintGPT is a Python project. Keep GitHub's language bar honest by not letting
+# the web UI, the Android wrapper, and docs drown out the actual Python code.
+# (These are still real files — this only affects the language statistics.)
+sprintgpt/templates/**  linguist-vendored
+sprintgpt/static/**     linguist-vendored
+android/**              linguist-vendored
+*.md                    linguist-documentation
+
+# Don't try to diff binaries.
+*.apk binary
+*.png binary
+*.jpg binary
+*.ico binary

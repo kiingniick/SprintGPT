@@ -1,0 +1,53 @@
+name: "🐛 Bug report"
+description: "Something's broken / cursed / going brrrrrr in the wrong direction"
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! The more detail, the faster we squash it. 🐞🔨
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, and what did you expect instead?
+      placeholder: "I clicked X and expected Y, but got Z (a cool error / nothing / chaos)."
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How do we make it happen too?
+      placeholder: |
+        1. Go to '...'
+        2. Click '...'
+        3. Watch it go brrrrrr (wrongly)
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did this happen?
+      options:
+        - Website (browser)
+        - Android app — on-device mode
+        - Android app — connected to a server
+        - Self-hosted server
+        - Command line (CLI)
+        - Somewhere else / not sure
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Setup
+      description: OS, browser/phone, Python version — whatever's relevant.
+      placeholder: "Windows 11, Chrome / Pixel 8, Python 3.12"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Paste any error text or drop a screenshot. (Scrub secrets!)
+      render: shell

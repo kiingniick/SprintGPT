@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sprintgpt"
+version = "0.1.0"
+description = "Your AI running coach — track runs, heart-rate zones, race predictions, and personalized training plans. Built by runners, for runners."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "KingNick" }]
+keywords = ["running", "coach", "strava", "training", "flask", "fitness", "vdot", "pace"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Flask",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Intended Audience :: End Users/Desktop",
+]
+
+# The stuff that makes it go brrrrrr. Mirrors requirements.txt.
+dependencies = [
+    "flask>=3.0.0",
+    "waitress>=3.0.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+    "numpy>=1.26.0",
+    "pandas>=2.1.0",
+    "scikit-learn>=1.3.0",
+    "rich>=13.7.0",
+]
+
+[project.optional-dependencies]
+# `pip install -e .[dev]` for contributors.
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
+
+[project.urls]
+Homepage = "https://kiingniick.github.io/SprintGPT/"
+Repository = "https://github.com/kiingniick/SprintGPT"
+Issues = "https://github.com/kiingniick/SprintGPT/issues"
+
+[project.scripts]
+# `sprintgpt ...` runs the command-line interface after install.
+sprintgpt = "sprintgpt.cli:main"
+
+[tool.setuptools]
+packages = ["sprintgpt"]
+
+[tool.setuptools.package-data]
+# Ship the web UI (templates + static assets) inside the package.
+sprintgpt = ["templates/*.html", "static/*", "static/**/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

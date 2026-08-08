@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 Read the docs first
+    url: https://kiingniick.github.io/SprintGPT/
+    about: The live app + in-app documentation might already answer your question.
+  - name: 🤝 How to contribute
+    url: https://github.com/kiingniick/SprintGPT/blob/main/CONTRIBUTING.md
+    about: Setup, code style, and the sacred "goes brrrrrr" naming convention.
