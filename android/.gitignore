@@ -1,0 +1,11 @@
+# Build output & local machine config
+.gradle/
+build/
+app/build/
+local.properties
+*.keystore
+*.jks
+
+# Python payload is copied from the repo root at build time (see android/README.md)
+app/src/main/python/sprintgpt/
+app/src/main/python/README.md

@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.application'
+    id 'com.chaquo.python'
+}
+
+android {
+    namespace 'com.sprintgpt.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.sprintgpt.app'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+
+        // Python 3.12 in Chaquopy supports 64-bit ABIs only.
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+
+        python {
+            version '3.12'
+            // Path to a matching (3.12) Python on the build machine, passed as
+            // -PbuildPython=... so this file stays machine-independent.
+            if (project.hasProperty('buildPython')) {
+                buildPython project.getProperty('buildPython')
+            }
+            pip {
+                install 'Flask>=3.0'
+                install 'requests>=2.31'
+                install 'python-dotenv>=1.0'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
