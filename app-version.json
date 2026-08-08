@@ -1,7 +1,7 @@
 {
-  "versionCode": 6,
-  "versionName": "1.5",
+  "versionCode": 7,
+  "versionName": "1.6",
   "url": "https://github.com/kiingniick/SprintGPT/releases/latest",
   "apkUrl": "https://github.com/kiingniick/SprintGPT/releases/latest/download/SprintGPT.apk",
-  "notes": "Crash handling: the app now auto-recovers from errors instead of stopping."
+  "notes": "Broader race search: now finds NXR/NXN cross country and local road races too."
 }
