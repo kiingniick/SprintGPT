@@ -8,13 +8,17 @@ run straight into their SprintGPT log as race activities.
 
 The design is provider-based: each site implements a ``search`` (name -> list of
 candidate athletes) and a ``results`` (athlete id -> list of ``Activity``). Adding
-another source (MileSplit, TFRRS, ...) is just another entry in ``PROVIDERS``.
-Athletic.net is implemented today and already spans both cross country and track
-meets nationwide.
+another source is just another entry in ``PROVIDERS``. Two sources ship today:
 
-Results are returned as ``Activity`` objects with ``source="athletic.net"`` and a
-stable ``external_id`` (``an-<result id>``) so re-importing is idempotent - the
-storage layer's unique (user, external_id) index drops duplicates automatically.
+- **Athletic.net** - US high-school, college, and club cross country + track.
+- **MileSplit** - broad national coverage of high-school and club meets, including
+  championship series like **NXR/NXN** (cross country) *and* **road races / local
+  events** (its results carry a ``road`` season), so more of a runner's real races
+  show up - not just the track/XC ones.
+
+Results are returned as ``Activity`` objects with a per-source ``source`` and a
+stable ``external_id`` (``an-<id>`` / ``ms-<id>``) so re-importing is idempotent -
+the storage layer's unique (user, external_id) index drops duplicates automatically.
 """
 from __future__ import annotations
 
@@ -309,6 +313,185 @@ def _an_results(athlete_id: str) -> list[Activity]:
 
 
 # ---------------------------------------------------------------------------
+# MileSplit provider
+# ---------------------------------------------------------------------------
+#
+# MileSplit exposes a clean, key-free JSON API:
+#   search : /api/v1/athletes?q=<name>          -> athletes (id, name, city, state)
+#   stats  : /api/v1/athletes/<id>/stats        -> every result (event, mark, meet)
+#   meet   : /api/v1/meets/<id>                  -> meet date + venue
+# The stats rows don't carry a date, so we look up each meet once (deduped/capped).
+
+_MS_HEADERS = {**_HEADERS, "Referer": "https://www.milesplit.com/"}
+_MS_SEARCH = "https://www.milesplit.com/api/v1/athletes?q={q}"
+_MS_STATS = "https://www.milesplit.com/api/v1/athletes/{id}/stats"
+_MS_MEET = "https://www.milesplit.com/api/v1/meets/{id}"
+# Bound the number of meet-date lookups so a huge history can't stall an import.
+_MS_MAX_MEETS = 140
+
+_MS_SEASON_LABEL = {
+    "cc": "XC", "xc": "XC", "road": "Road", "indoor": "Indoor",
+    "outdoor": "Outdoor", "track": "Track",
+}
+# Event codes that aren't a single flat run (field events, relays, combined events).
+_MS_FIELD_TOKENS = (
+    "lj", "tj", "hj", "pv", "sp", "dt", "jt", "ht", "wt", "pent", "hept", "dec",
+    "throw", "jump", "vault", "put", "shot", "discus", "javelin", "hammer",
+    "weight", "relay", "medley", "dmr", "smr",
+)
+
+
+def _ms_get(url: str, session: Optional[requests.Session]) -> dict:
+    getter = session.get if session is not None else requests.get
+    try:
+        resp = getter(url, headers=_MS_HEADERS, timeout=_TIMEOUT)
+    except requests.RequestException as e:
+        raise MeetImportError(f"Couldn't reach MileSplit: {e}") from e
+    try:
+        return resp.json()
+    except ValueError:
+        snippet = (resp.text or "")[:2000].lower()
+        if any(m in snippet for m in ("just a moment", "cf_chl", "challenge-platform")):
+            raise MeetImportError(
+                "MileSplit is temporarily blocking automated access. "
+                "Please wait a minute and try again."
+            )
+        raise MeetImportError("MileSplit returned an unexpected response.")
+
+
+def _ms_event_meters(code: str) -> Optional[float]:
+    """Meters for a flat run described by a MileSplit event code, else None."""
+    c = (code or "").strip().lower()
+    if not c:
+        return None
+    if re.search(r"\dx\d", c):                      # relays: 4x400, 4x800
+        return None
+    if any(tok in c for tok in _MS_FIELD_TOKENS):   # field / combined events
+        return None
+    if re.search(r"\d+\s*h\b", c) or c.endswith("h"):   # hurdles
+        return None
+    if "marathon" in c:
+        return 21097.5 if "half" in c else 42195.0
+    if "mile" in c:
+        lead = re.match(r"(\d+(?:\.\d+)?)", c)
+        return (float(lead.group(1)) if lead else 1.0) * MILE_M
+    m = re.search(r"(\d[\d,]*(?:\.\d+)?)\s*k\b", c)  # 5k, 10k
+    if m:
+        return float(m.group(1).replace(",", "")) * 1000
+    m = re.search(r"(\d[\d,]*)\s*m", c)             # 800m, 5000m
+    if m:
+        return float(m.group(1).replace(",", ""))
+    m = re.match(r"(\d{3,5})$", c)                  # bare "5000"
+    if m:
+        return float(m.group(1))
+    return None
+
+
+def _ms_mark_seconds(mark: str) -> Optional[float]:
+    """Parse a MileSplit time mark ('1:37.34', '15:53.00', '2:30:45') to seconds."""
+    s = (mark or "").strip().lower()
+    if not s or any(x in s for x in ("dnf", "dns", "dq", "nt", "scr", "nm", "fs")):
+        return None
+    m = re.match(r"^(?:\d{1,2}:){0,2}\d{1,3}(?:\.\d+)?", s)
+    if not m:
+        return None
+    try:
+        parts = [float(p) for p in m.group(0).split(":")]
+    except ValueError:
+        return None
+    secs = 0.0
+    for p in parts:
+        secs = secs * 60 + p
+    return secs
+
+
+def _ms_search(name: str) -> list[AthleteMatch]:
+    data = _ms_get(_MS_SEARCH.format(q=quote(name)), None)
+    out: list[AthleteMatch] = []
+    for d in (data.get("data") or []):
+        first = (d.get("firstName") or "").strip()
+        last = (d.get("lastName") or "").strip()
+        full = (first + " " + last).strip() or "Unknown athlete"
+        city = (d.get("city") or "").strip()
+        state = (d.get("state") or "").strip()
+        grad = str(d.get("gradYear") or "").strip()
+        bits = []
+        loc = ", ".join(b for b in (city, state) if b)
+        if loc:
+            bits.append(loc)
+        if grad and grad not in ("0", "0000"):
+            bits.append(f"Class of {grad}")
+        out.append(
+            AthleteMatch(
+                provider="milesplit",
+                athlete_id=str(d.get("id")),
+                name=full,
+                detail=" \u00b7 ".join(bits),
+                gender=(d.get("gender") or "").upper(),
+                source="MileSplit",
+                city=city,
+                state=state,
+            )
+        )
+    return out
+
+
+def _ms_results(athlete_id: str) -> list[Activity]:
+    session = requests.Session()
+    stats = _ms_get(_MS_STATS.format(id=athlete_id), session).get("data") or []
+
+    # 1) Keep runnable events with a valid distance + time; collect their meets.
+    prelim: list[tuple[dict, float, float, str]] = []
+    for r in stats:
+        meters = _ms_event_meters(r.get("eventCode") or "")
+        if not meters or meters < _MIN_TRACK_M:
+            continue
+        secs = _ms_mark_seconds(r.get("mark") or "")
+        if secs is None or not (0 < secs < _MAX_SECONDS):
+            continue
+        meet_id = str(r.get("meetId") or "")
+        if meet_id:
+            prelim.append((r, meters, secs, meet_id))
+
+    # 2) Look up each meet once for its date (deduped, capped).
+    meet_cache: dict[str, dict] = {}
+    for meet_id in list(dict.fromkeys(mid for _, _, _, mid in prelim))[:_MS_MAX_MEETS]:
+        try:
+            meet_cache[meet_id] = _ms_get(_MS_MEET.format(id=meet_id), session).get("data") or {}
+        except MeetImportError:
+            continue
+
+    # 3) Build activities for everything we could date.
+    out: list[Activity] = []
+    for r, meters, secs, meet_id in prelim:
+        meet = meet_cache.get(meet_id)
+        if not meet:
+            continue
+        when = _an_date(meet.get("dateStart") or meet.get("dateEnd"))
+        if when is None:
+            continue
+        label = _dist_label(meters)
+        season = (r.get("season") or "").lower()
+        tag = _MS_SEASON_LABEL.get(season, season.title() if season else "")
+        name = (f"{label} {tag}").strip()
+        meet_name = r.get("meetName") or meet.get("name")
+        if meet_name:
+            name += f" \u00b7 {meet_name}"
+        out.append(
+            Activity(
+                start_date=when,
+                distance_m=float(meters),
+                moving_time_s=int(round(secs)),
+                name=name,
+                source="milesplit",
+                external_id=f"ms-{r.get('id')}",
+            )
+        )
+    out.sort(key=lambda a: a.start_date)
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Provider registry + public API
 # ---------------------------------------------------------------------------
 
@@ -321,6 +504,7 @@ class _Provider:
 
 PROVIDERS: dict[str, _Provider] = {
     "athleticnet": _Provider("Athletic.net", _an_search, _an_results),
+    "milesplit": _Provider("MileSplit", _ms_search, _ms_results),
 }
 
 
