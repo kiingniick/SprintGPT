@@ -20,6 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <!-- Account color theme: overrides the stylesheet defaults so the whole UI recolors. -->
   <style>:root{ {{ theme_css }} }</style>
+  {% block head %}{% endblock %}
 </head>
 <body>
   {% set ep = request.endpoint %}
@@ -36,6 +37,7 @@
       <a href="{{ url_for('plan') }}" class="{{ 'active' if ep == 'plan' }}">Training Plan</a>
       <a href="{{ url_for('splits') }}" class="{{ 'active' if ep == 'splits' }}">Splits</a>
       {% if account.is_admin %}<a href="{{ url_for('admin') }}" class="{{ 'active' if ep == 'admin' }}">Admin</a>{% endif %}
+      <a href="{{ url_for('docs') }}" class="{{ 'active' if ep == 'docs' }}">Documentation</a>
       <a href="{{ url_for('welcome') }}" class="{{ 'active' if ep == 'welcome' }}">Guide</a>
     </nav>
     {% endif %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Documentation · SprintGPT{% endblock %}
+
+{% block head %}
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="docpage">
+  <header class="doc-hero">
+    <span class="doc-kicker">Documentation</span>
+    <h1>The SprintGPT Handbook</h1>
+    <p class="doc-sub">Everything you need to set up, import your runs, and train smarter —
+       written for runners, not engineers.</p>
+    <div class="doc-hero-actions">
+      <a class="btn btn-primary" href="#-quick-start-2-minutes">Jump to Quick start</a>
+      <a class="btn" href="https://github.com/kiingniick/SprintGPT" target="_blank" rel="noopener">View on GitHub ↗</a>
+    </div>
+  </header>
+
+  <article id="doc-content" class="doc-content">
+    <div class="doc-loading">
+      <div class="doc-spinner" aria-hidden="true"></div>
+      <p>Loading the guide…</p>
+    </div>
+    <noscript>
+      <p>This guide is rendered from the project README. Please enable JavaScript, or
+         <a href="{{ url_for('readme_raw') }}">read the raw README</a>.</p>
+    </noscript>
+  </article>
+
+  <a class="doc-top" href="#top" aria-label="Back to top">↑</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script>
+  (function () {
+    var target = document.getElementById("doc-content");
+
+    // GitHub-compatible heading slugs so the README's table of contents works here too.
+    var seen = {};
+    function slug(text) {
+      var s = text.toString().trim().toLowerCase()
+        .replace(/[\u2010-\u2015]/g, "-")          // normalize fancy dashes to "-"
+        .replace(/[^a-z0-9 _\-]/g, "")             // drop emoji & punctuation
+        .replace(/ /g, "-");
+      if (seen[s] != null) { seen[s] += 1; s = s + "-" + seen[s]; }
+      else { seen[s] = 0; }
+      return s;
+    }
+
+    function render(md) {
+      if (typeof marked === "undefined") {
+        target.innerHTML = '<p>Could not load the renderer. ' +
+          '<a href="{{ url_for('readme_raw') }}">Read the raw README</a>.</p>';
+        return;
+      }
+      marked.setOptions({ gfm: true, breaks: false });
+      target.innerHTML = marked.parse(md);
+
+      // Add anchors to headings for the in-page table of contents.
+      target.querySelectorAll("h1, h2, h3, h4").forEach(function (h) {
+        if (!h.id) h.id = slug(h.textContent);
+      });
+
+      // Open external links in a new tab.
+      target.querySelectorAll('a[href^="http"]').forEach(function (a) {
+        a.target = "_blank"; a.rel = "noopener";
+      });
+
+      // Smooth-scroll for in-page anchors (incl. the hero's "Quick start" button).
+      document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+        a.addEventListener("click", function (e) {
+          var id = a.getAttribute("href").slice(1);
+          if (!id) return;
+          var el = document.getElementById(id);
+          if (el) { e.preventDefault(); el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+        });
+      });
+    }
+
+    fetch("{{ url_for('readme_raw') }}", { headers: { "Accept": "text/markdown" } })
+      .then(function (r) { return r.text(); })
+      .then(render)
+      .catch(function () {
+        target.innerHTML = '<p>Sorry, the guide could not be loaded right now. ' +
+          '<a href="{{ url_for('readme_raw') }}">Open the raw README</a>.</p>';
+      });
+
+    // Show/hide the back-to-top button.
+    var topBtn = document.querySelector(".doc-top");
+    window.addEventListener("scroll", function () {
+      topBtn.classList.toggle("show", window.scrollY > 600);
+    });
+  })();
+</script>
+{% endblock %}

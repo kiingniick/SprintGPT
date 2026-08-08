@@ -186,7 +186,7 @@ def create_app() -> Flask:
     # Pages visible without an account. Everything else requires logging in, so
     # the only thing a signed-out visitor ever sees is the start guide.
     PUBLIC_ENDPOINTS = {"welcome", "login", "signup", "logout", "service_worker",
-                        "static", "forgot_password", "reset_password"}
+                        "static", "forgot_password", "reset_password", "docs", "readme_raw"}
 
     @app.before_request
     def require_login():
@@ -221,6 +221,25 @@ def create_app() -> Flask:
         if session.get("uid"):
             return redirect(url_for("dashboard"))
         return render_template("welcome.html")
+
+    # ---- documentation (renders the project README) ------------------------
+    README_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "README.md")
+
+    @app.route("/docs")
+    def docs():
+        return render_template("docs.html")
+
+    @app.route("/readme.md")
+    def readme_raw():
+        try:
+            with open(README_PATH, "r", encoding="utf-8") as fh:
+                text = fh.read()
+        except OSError:
+            text = "# Documentation\n\nThe README could not be loaded on the server."
+        resp = make_response(text)
+        resp.headers["Content-Type"] = "text/markdown; charset=utf-8"
+        resp.headers["Cache-Control"] = "no-cache"
+        return resp
 
     # ---- dashboard ----------------------------------------------------------
     @app.route("/")
