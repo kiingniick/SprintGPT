@@ -304,9 +304,9 @@
     </form>
   </div>
 
-  <!-- Settings / HR profile -->
+  <!-- Athlete profile: HR + body metrics -->
   <div class="card">
-    <h2>Heart-Rate Profile</h2>
+    <h2>Athlete Profile</h2>
     <form class="form-grid" method="post" action="{{ url_for('settings') }}">
       <div class="row-2">
         <div><label>Max HR (bpm)</label><input name="max_hr" type="number" value="{{ profile.max_hr }}"></div>
@@ -321,12 +321,107 @@
           </select>
         </div>
       </div>
-      <p class="hint">Resting HR enables heart-rate-reserve (Karvonen) zones and
-        TRIMP training load. Leave max HR blank when using age.</p>
+
+      <div class="row-2">
+        <div><label>Units</label>
+          <select name="units" id="unitSelect" onchange="pl_toggleUnits()">
+            <option value="imperial" {{ 'selected' if profile.units != 'metric' }}>Imperial (ft / lb)</option>
+            <option value="metric" {{ 'selected' if profile.units == 'metric' }}>Metric (cm / kg)</option>
+          </select>
+        </div>
+        <div></div>
+      </div>
+
+      <div id="imperialFields">
+        <div class="row-2">
+          <div>
+            <label>Height</label>
+            <div class="row-2" style="gap:8px">
+              <input name="height_ft" type="number" min="0" placeholder="ft"
+                     value="{{ profile.height_ft_in[0] if profile.height_ft_in }}">
+              <input name="height_in" type="number" min="0" max="11" placeholder="in"
+                     value="{{ profile.height_ft_in[1] if profile.height_ft_in }}">
+            </div>
+          </div>
+          <div><label>Weight (lb)</label>
+            <input name="weight_lb" type="number" step="any" placeholder="e.g. 150"
+                   value="{{ profile.weight_lb or '' }}"></div>
+        </div>
+      </div>
+
+      <div id="metricFields" style="display:none">
+        <div class="row-2">
+          <div><label>Height (cm)</label>
+            <input name="height_cm" type="number" step="any" placeholder="e.g. 175"
+                   value="{{ (profile.height_cm | round(1)) if profile.height_cm }}"></div>
+          <div><label>Weight (kg)</label>
+            <input name="weight_kg" type="number" step="any" placeholder="e.g. 68"
+                   value="{{ (profile.weight_kg | round(1)) if profile.weight_kg }}"></div>
+        </div>
+      </div>
+
+      <p class="hint">Resting HR enables Karvonen zones &amp; TRIMP load. Height and
+        weight power your BMI and personalized strength-training guidance below.</p>
       <button class="btn btn-primary btn-block" type="submit">Save profile</button>
     </form>
   </div>
 </div>
+
+<!-- Body & strength guidance -->
+<div class="grid grid-2" style="margin-top:18px">
+  <div class="card">
+    <h2>Body Metrics</h2>
+    {% if profile.bmi %}
+    <div class="grid grid-3" style="gap:12px">
+      <div class="stat" style="padding:6px 0">
+        <div class="value">{{ profile.bmi }}</div>
+        <div class="label">BMI
+          <span class="badge {{ 'fresh' if profile.bmi_category == 'Healthy' else 'fatigued' if profile.bmi_category in ['Overweight','Obese'] else 'balanced' }}"
+                style="font-size:0.62rem; vertical-align:middle">{{ profile.bmi_category }}</span>
+        </div>
+      </div>
+      <div class="stat" style="padding:6px 0">
+        <div class="value">
+          {% if profile.units == 'metric' %}{{ profile.height_cm | round | int }}<span style="font-size:0.9rem"> cm</span>
+          {% else %}{{ profile.height_ft_in[0] }}'{{ profile.height_ft_in[1] }}"{% endif %}
+        </div>
+        <div class="label">Height</div>
+      </div>
+      <div class="stat" style="padding:6px 0">
+        <div class="value">
+          {% if profile.units == 'metric' %}{{ profile.weight_kg | round(1) }}<span style="font-size:0.9rem"> kg</span>
+          {% else %}{{ profile.weight_lb | round | int }}<span style="font-size:0.9rem"> lb</span>{% endif %}
+        </div>
+        <div class="label">Weight</div>
+      </div>
+    </div>
+    <p class="hint">BMI is a rough screen and can read high for muscular athletes —
+      use it as one data point, not a verdict.</p>
+    {% else %}
+    <p class="hint">Add your height and weight in your Athlete Profile to see your BMI
+      and body-metric trends here.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Strength Training
+      <span class="sub">{{ strength.level }} · {{ strength.summary }}</span></h2>
+    <p style="margin:0 0 10px">{{ strength.rationale }}</p>
+    <ul class="focus-list">
+      {% for f in strength.focus %}<li>{{ f }}</li>{% endfor %}
+    </ul>
+    <p class="hint">Guidance scales with your weekly mileage{% if goal %}, your goal race{% endif %}{% if profile.bmi %}, and your BMI{% endif %}. Keep hard lifts on hard-run days so easy days stay easy.</p>
+  </div>
+</div>
+
+<script>
+  function pl_toggleUnits() {
+    var metric = document.getElementById('unitSelect').value === 'metric';
+    document.getElementById('metricFields').style.display = metric ? '' : 'none';
+    document.getElementById('imperialFields').style.display = metric ? 'none' : '';
+  }
+  pl_toggleUnits();
+</script>
 
 <!-- Appearance / color theme -->
 <h2 style="margin:34px 0 14px; font-size:1.2rem" id="appearance">Appearance</h2>

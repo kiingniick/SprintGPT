@@ -43,6 +43,7 @@ from .analysis import (
 )
 from .chat import SUGGESTIONS, build_reply
 from .config import load_config
+from .health import ft_in_to_cm, lb_to_kg, strength_recommendation
 from .themes import THEMES, DEFAULT_THEME, palette_to_css, resolve_palette
 from .importer import (
     import_csv,
@@ -336,6 +337,11 @@ def create_app() -> Flask:
                 })
             ctx["recent"] = recent
 
+        weekly_km = ctx["fitness"].weekly_km if activities else 0.0
+        ctx["strength"] = strength_recommendation(
+            profile, weekly_km, goal.distance_m if goal else None
+        )
+
         store.close()
         return render_template("dashboard.html", **ctx)
 
@@ -433,6 +439,7 @@ def create_app() -> Flask:
         store = _store()
         uid = _current_user(store)
         try:
+            existing = store.get_profile(uid) or Profile()
             resting = request.form.get("resting_hr", "").strip()
             age = request.form.get("age", "").strip()
             max_hr = request.form.get("max_hr", "").strip()
@@ -441,14 +448,39 @@ def create_app() -> Flask:
             elif age:
                 max_hr_val = Profile.estimate_max_hr(int(age))
             else:
-                max_hr_val = (store.get_profile(uid) or Profile()).max_hr
+                max_hr_val = existing.max_hr
+
+            # Body metrics: always stored metric; the form sends whichever
+            # unit system the athlete picked. Blank fields keep prior values.
+            units = (request.form.get("units", "").strip() or existing.units or "imperial")
+            height_cm = existing.height_cm
+            weight_kg = existing.weight_kg
+            if units == "metric":
+                h = request.form.get("height_cm", "").strip()
+                w = request.form.get("weight_kg", "").strip()
+                if h:
+                    height_cm = float(h)
+                if w:
+                    weight_kg = float(w)
+            else:
+                ft = request.form.get("height_ft", "").strip()
+                inch = request.form.get("height_in", "").strip()
+                lb = request.form.get("weight_lb", "").strip()
+                if ft or inch:
+                    height_cm = ft_in_to_cm(float(ft or 0), float(inch or 0))
+                if lb:
+                    weight_kg = lb_to_kg(float(lb))
+
             profile = Profile(
                 max_hr=max_hr_val,
                 resting_hr=int(resting) if resting else None,
                 sex=request.form.get("sex", "m"),
+                height_cm=height_cm,
+                weight_kg=weight_kg,
+                units=units,
             )
             store.set_profile(uid, profile)
-            flash("Profile saved. Heart-rate zones updated.", "success")
+            flash("Profile saved. Zones, BMI, and strength guidance updated.", "success")
         except ValueError as e:
             flash(f"Invalid profile: {e}", "error")
         store.close()

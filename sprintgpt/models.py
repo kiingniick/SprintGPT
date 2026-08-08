@@ -44,20 +44,66 @@ class Activity:
 
 @dataclass
 class Profile:
-    """Athlete profile used for heart-rate zone math.
+    """Athlete profile used for heart-rate zone math and body metrics.
 
     `max_hr` and `resting_hr` drive zone boundaries. If `resting_hr` is set,
     zones use heart-rate reserve (Karvonen); otherwise plain %HRmax.
+
+    `height_cm` and `weight_kg` are always stored metric; `units` only controls
+    how those values are shown to and collected from the athlete ("imperial" or
+    "metric").
     """
 
     max_hr: int = 190
     resting_hr: Optional[int] = None
     sex: str = "m"  # affects the TRIMP intensity coefficient
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    units: str = "imperial"
 
     @staticmethod
     def estimate_max_hr(age: int) -> int:
         # Tanaka formula: 208 - 0.7 * age (more accurate than 220 - age).
         return int(round(208 - 0.7 * age))
+
+    @property
+    def bmi(self) -> Optional[float]:
+        """Body Mass Index (kg/m^2), or None if height/weight aren't set."""
+        if not self.height_cm or not self.weight_kg or self.height_cm <= 0:
+            return None
+        m = self.height_cm / 100.0
+        return round(self.weight_kg / (m * m), 1)
+
+    @property
+    def bmi_category(self) -> Optional[str]:
+        b = self.bmi
+        if b is None:
+            return None
+        if b < 18.5:
+            return "Underweight"
+        if b < 25:
+            return "Healthy"
+        if b < 30:
+            return "Overweight"
+        return "Obese"
+
+    @property
+    def height_ft_in(self) -> Optional[tuple[int, int]]:
+        """Height as (feet, inches) for imperial display."""
+        if not self.height_cm:
+            return None
+        total_in = self.height_cm / 2.54
+        feet = int(total_in // 12)
+        inches = int(round(total_in - feet * 12))
+        if inches == 12:  # rounding rolled over
+            feet, inches = feet + 1, 0
+        return feet, inches
+
+    @property
+    def weight_lb(self) -> Optional[float]:
+        if not self.weight_kg:
+            return None
+        return round(self.weight_kg / 0.45359237, 1)
 
 
 @dataclass

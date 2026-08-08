@@ -21,6 +21,7 @@ from .analysis import (
     weekly_volume_series,
     zone_distribution,
 )
+from .health import strength_recommendation
 from .importer import parse_distance
 from .models import Activity, Goal, Profile
 from .planner import PlanContext, generate_plan
@@ -34,6 +35,8 @@ SUGGESTIONS = [
     "What pace should my easy runs be?",
     "How are my heart-rate zones?",
     "What should I do today?",
+    "What's my BMI?",
+    "How much strength training do I need?",
 ]
 
 _RACE_LABELS = [("5k", "5K"), ("10k", "10K"), ("half", "Half marathon"), ("marathon", "Marathon")]
@@ -149,6 +152,43 @@ def _zones_answer(activities, profile) -> str:
     easy = sum(z.minutes for z in zones[:2])
     lines.append(f"\nAbout {easy / total * 100:.0f}% of your tracked time is easy (Z1-Z2) — "
                  f"{'nice aerobic base' if easy / total > 0.7 else 'consider adding more easy volume'}.")
+    return "\n".join(lines)
+
+
+def _body_answer(profile: Profile) -> str:
+    bmi = profile.bmi
+    if bmi is None:
+        return ("I don't have your height and weight yet. Add them in your Athlete Profile on the "
+                "dashboard and I'll track your BMI and tailor your strength guidance.")
+    if profile.units == "metric":
+        h = f"{profile.height_cm:.0f} cm" if profile.height_cm else "—"
+        w = f"{profile.weight_kg:.1f} kg" if profile.weight_kg else "—"
+    else:
+        ft_in = profile.height_ft_in
+        h = f"{ft_in[0]}'{ft_in[1]}\"" if ft_in else "—"
+        w = f"{profile.weight_lb:.0f} lb" if profile.weight_lb else "—"
+    return (f"Here are your body metrics:\n"
+            f"• Height: {h}\n"
+            f"• Weight: {w}\n"
+            f"• BMI: {bmi} ({profile.bmi_category})\n\n"
+            "Heads up: BMI is a rough screen and often reads high for muscular runners, so treat it "
+            "as one data point rather than a verdict.")
+
+
+def _strength_answer(profile: Profile, fitness, goal) -> str:
+    plan = strength_recommendation(
+        profile, fitness.weekly_km, goal.distance_m if goal else None
+    )
+    lines = [
+        f"For your current training, I'd aim for {plan.level.lower()} strength work — "
+        f"{plan.sessions_per_week}× per week, about {plan.minutes_per_session} min a session.",
+        "",
+        f"Why: {plan.rationale}",
+        "",
+        "Focus on:",
+    ]
+    lines += [f"• {f}" for f in plan.focus]
+    lines.append("\nKeep hard lifts on your hard-run days so your easy days stay genuinely easy.")
     return "\n".join(lines)
 
 
@@ -294,6 +334,10 @@ def build_reply(
                 want = "threshold" if key == "tempo" else key
                 break
         return _paces_answer(fitness, want)
+    if re.search(r"\b(bmi|body mass|body metric|how (tall|heavy)|my (weight|height)|how much do i weigh)\b", q):
+        return _body_answer(profile)
+    if re.search(r"\b(strength|lift(ing|s)?|gym|weights|resistance|cross[- ]?train(ing)?|dumbbell|barbell)\b", q):
+        return _strength_answer(profile, fitness, goal)
     if re.search(r"\b(zone|heart[- ]?rate|hr|cardio)\b", q):
         return _zones_answer(activities, profile)
     if re.search(r"\b(form|tsb|fatigue|fresh|tired|recover|overtrain)\b", q):

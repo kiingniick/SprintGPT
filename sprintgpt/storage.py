@@ -55,6 +55,9 @@ class Storage:
                 max_hr INTEGER DEFAULT 190,
                 resting_hr INTEGER,
                 sex TEXT DEFAULT 'm',
+                height_cm REAL,
+                weight_kg REAL,
+                units TEXT DEFAULT 'imperial',
                 theme TEXT DEFAULT 'emerald',
                 accent TEXT,
                 accent2 TEXT,
@@ -130,6 +133,11 @@ class Storage:
                     "accent2", "bot_name", "city", "state"):
             if col not in user_cols:
                 self.conn.execute(f"ALTER TABLE users ADD COLUMN {col} TEXT")
+        # Body-metric columns (typed): height/weight are numeric, units is text.
+        for col, decl in (("height_cm", "REAL"), ("weight_kg", "REAL"),
+                          ("units", "TEXT DEFAULT 'imperial'")):
+            if col not in user_cols:
+                self.conn.execute(f"ALTER TABLE users ADD COLUMN {col} {decl}")
 
     # ---- users --------------------------------------------------------------
     def get_or_create_user(self, session_token: str) -> int:
@@ -344,8 +352,11 @@ class Storage:
     # ---- profile (stored on the user row) -----------------------------------
     def set_profile(self, user_id: int, profile: Profile) -> None:
         self.conn.execute(
-            "UPDATE users SET max_hr = ?, resting_hr = ?, sex = ? WHERE id = ?",
-            (profile.max_hr, profile.resting_hr, profile.sex, user_id),
+            "UPDATE users SET max_hr = ?, resting_hr = ?, sex = ?, "
+            "height_cm = ?, weight_kg = ?, units = ? WHERE id = ?",
+            (profile.max_hr, profile.resting_hr, profile.sex,
+             profile.height_cm, profile.weight_kg, profile.units or "imperial",
+             user_id),
         )
         self.conn.commit()
 
@@ -399,10 +410,14 @@ class Storage:
         row = self.get_user(user_id)
         if not row:
             return None
+        keys = row.keys()
         return Profile(
             max_hr=row["max_hr"] or 190,
             resting_hr=row["resting_hr"],
             sex=row["sex"] or "m",
+            height_cm=row["height_cm"] if "height_cm" in keys else None,
+            weight_kg=row["weight_kg"] if "weight_kg" in keys else None,
+            units=(row["units"] if "units" in keys else None) or "imperial",
         )
 
     # ---- Strava tokens (per user) -------------------------------------------
