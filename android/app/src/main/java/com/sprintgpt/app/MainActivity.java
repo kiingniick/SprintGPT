@@ -228,6 +228,9 @@ public class MainActivity extends Activity {
         handler.removeCallbacks(retry);
         SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         String savedUrl = prefs.getString(KEY_URL, "");
+        if (savedUrl == null || savedUrl.isEmpty()) {
+            savedUrl = BuildConfig.DEFAULT_SERVER_URL;   // pre-fill the recommended host
+        }
         String html = buildSetupHtml(savedUrl == null ? "" : savedUrl, null);
         web.loadDataWithBaseURL("https://sprintgpt.local/", html, "text/html", "utf-8", null);
     }
@@ -246,6 +249,14 @@ public class MainActivity extends Activity {
         String errBlock = "";
         if (error != null) {
             errBlock = "<div class='err'>" + escape(error) + "</div>";
+        }
+        String recommended = BuildConfig.DEFAULT_SERVER_URL;
+        String recoBlock = "";
+        if (recommended != null && !recommended.isEmpty()) {
+            recoBlock =
+                "<button class='ghost' style='margin-bottom:12px' " +
+                "onclick=\"SprintGPTNative.chooseServer('" + escape(recommended) + "')\">" +
+                "Use recommended server</button>";
         }
         return "<!doctype html><html><head>" +
             "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
@@ -278,6 +289,7 @@ public class MainActivity extends Activity {
             "<div class='card'>" +
             "<h2>Connect to a server</h2>" +
             "<p>Point the app at a SprintGPT you host yourself. Works over mobile data and keeps the app and website in sync.</p>" +
+            recoBlock +
             "<input id='url' type='url' inputmode='url' autocapitalize='none' autocorrect='off' spellcheck='false' " +
             "placeholder='https://your-sprintgpt.example.com' value='" + escape(savedUrl) + "'>" +
             "<button class='primary' onclick=\"SprintGPTNative.chooseServer(document.getElementById('url').value)\">Connect</button>" +

@@ -29,23 +29,44 @@
       <span class="brand-mark">S</span> SprintGPT
       <span class="brand-tag">AI running coach</span>
     </a>
-    {% if account %}
-    <nav class="desktop-nav">
-      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if ep == 'dashboard' }}">Dashboard</a>
-      <a href="{{ url_for('chat') }}" class="{{ 'active' if ep == 'chat' }}">Coach</a>
-      <a href="{{ url_for('meets') }}" class="{{ 'active' if ep == 'meets' }}">Meets</a>
-      <a href="{{ url_for('plan') }}" class="{{ 'active' if ep == 'plan' }}">Training Plan</a>
-      <a href="{{ url_for('splits') }}" class="{{ 'active' if ep == 'splits' }}">Splits</a>
-      {% if account.is_admin %}<a href="{{ url_for('admin') }}" class="{{ 'active' if ep == 'admin' }}">Admin</a>{% endif %}
-      {% if is_app %}<a href="sprintgpt://settings">Connection</a>{% endif %}
-      <a href="{{ url_for('docs') }}" class="{{ 'active' if ep == 'docs' }}">Documentation</a>
-      <a href="{{ url_for('welcome') }}" class="{{ 'active' if ep == 'welcome' }}">Guide</a>
-    </nav>
-    {% endif %}
-    <div class="auth-area">
+    <div class="topbar-actions">
       {% if account %}
-        <a class="auth-hi {{ 'active' if ep == 'account_settings' }}" href="{{ url_for('account_settings') }}">Hi, {{ account.name }}</a>
-        <a class="btn btn-sm" href="{{ url_for('logout') }}">Log out</a>
+      <details class="menu" id="mainmenu">
+        <summary class="menu-btn" aria-haspopup="true" aria-label="Open menu">
+          <svg class="menu-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span class="menu-btn-label">Menu</span>
+        </summary>
+        <nav class="menu-panel" aria-label="Main menu">
+          <div class="menu-userline">
+            <span class="menu-user">Hi, {{ account.name }}</span>
+            {% if account.email %}<span class="menu-email">{{ account.email }}</span>{% endif %}
+          </div>
+          <a href="{{ url_for('dashboard') }}" class="menu-item {{ 'active' if ep in ('dashboard', 'activity') }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Dashboard</a>
+          <a href="{{ url_for('chat') }}" class="menu-item {{ 'active' if ep == 'chat' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Coach</a>
+          <a href="{{ url_for('meets') }}" class="menu-item {{ 'active' if ep == 'meets' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="6"/><path d="M9 14l-2 8 5-3 5 3-2-8"/></svg>Meets</a>
+          <a href="{{ url_for('plan') }}" class="menu-item {{ 'active' if ep == 'plan' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Training Plan</a>
+          <a href="{{ url_for('splits') }}" class="menu-item {{ 'active' if ep == 'splits' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6M12 5V2"/></svg>Splits</a>
+          <div class="menu-sep"></div>
+          <a href="{{ url_for('account_settings') }}" class="menu-item {{ 'active' if ep == 'account_settings' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Account settings</a>
+          {% if is_app %}<a href="sprintgpt://settings" class="menu-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/><circle cx="4" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>App connection</a>{% endif %}
+          {% if account.is_admin %}<a href="{{ url_for('admin') }}" class="menu-item {{ 'active' if ep == 'admin' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Admin analytics</a>{% endif %}
+          <a href="{{ url_for('docs') }}" class="menu-item {{ 'active' if ep == 'docs' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v6h6"/></svg>Documentation</a>
+          <a href="{{ url_for('welcome') }}" class="menu-item {{ 'active' if ep == 'welcome' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>Start guide</a>
+          <div class="menu-sep"></div>
+          <a href="{{ url_for('logout') }}" class="menu-item menu-danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Log out</a>
+        </nav>
+      </details>
       {% else %}
         <a class="auth-link" href="{{ url_for('login') }}">Log in</a>
         <a class="btn btn-sm btn-primary" href="{{ url_for('signup') }}">Sign up</a>
@@ -103,6 +124,20 @@
         navigator.serviceWorker.register("{{ url_for('service_worker') }}").catch(function () {});
       });
     }
+    // Dropdown menu: close on outside click, Escape, or after choosing an item.
+    (function () {
+      var menu = document.getElementById("mainmenu");
+      if (!menu) return;
+      document.addEventListener("click", function (e) {
+        if (menu.open && !menu.contains(e.target)) menu.open = false;
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && menu.open) menu.open = false;
+      });
+      menu.querySelectorAll(".menu-item").forEach(function (a) {
+        a.addEventListener("click", function () { menu.open = false; });
+      });
+    })();
   </script>
   {% block scripts %}{% endblock %}
 </body>

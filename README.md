@@ -98,6 +98,10 @@ Install steps:
 2. Tap the downloaded file. If prompted, allow **Install from unknown sources** for your browser or files app.
 3. Open **SprintGPT** and pick a mode. (On-device mode takes a few seconds the first time to unpack its built-in Python runtime.)
 
+> Release builds come **pre-filled with a recommended server** so "Connect to a server"
+> is one tap — you can always type your own [self-hosted URL](#-host-it-yourself-run-over-the-internet) instead.
+> Every menu option now lives in a single, mobile-friendly **☰ menu** in the top bar.
+
 > You can switch modes anytime: open **Account settings → App connection**, or tap **Connection** in the menu.
 >
 > Requires a 64-bit (`arm64-v8a`) device — virtually every phone from the last several years. The APK is debug-signed for easy sideloading.
