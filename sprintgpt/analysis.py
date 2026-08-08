@@ -57,6 +57,26 @@ def vdot_from_performance(distance_m: float, time_s: float) -> float:
     return vo2 / pct
 
 
+# Elite human VDOT tops out in the mid-80s, so any "effort" implying more than
+# this is a GPS glitch or corrupt import, not a run worth learning from.
+MAX_PLAUSIBLE_VDOT = 85.0
+# Fastest credible *sustained* running speed (~2:23/km). Over a real running
+# distance, anything quicker is bad data (dropped-signal splits, unit errors).
+MAX_RUNNING_SPEED_MS = 7.0
+
+
+def plausible_effort(distance_m: float, time_s: float, min_distance_m: float = 1500.0) -> bool:
+    """True if (distance, time) looks like a genuine effort worth using to judge
+    fitness — filtering GPS glitches, corrupt imports, and short sprints that
+    would otherwise inflate VDOT and make race predictions wildly optimistic.
+    """
+    if distance_m < min_distance_m or time_s <= 0:
+        return False
+    if distance_m / time_s > MAX_RUNNING_SPEED_MS:
+        return False
+    return 0.0 < vdot_from_performance(distance_m, time_s) <= MAX_PLAUSIBLE_VDOT
+
+
 def velocity_for_vo2(target_vo2: float) -> float:
     """Invert the VO2 cost curve: velocity (m/min) for a given oxygen cost."""
     a, b, c = 0.000104, 0.182258, -4.60 - target_vo2
@@ -315,17 +335,18 @@ def compute_fitness(
         a.distance_km for a in activities if week_ago <= a.start_date.date() <= as_of
     )
 
-    # VDOT from best and recent efforts.
+    # VDOT from best and recent efforts (outlier-guarded so one corrupt run or
+    # GPS glitch can't blow the fitness score up to an impossible number).
     best_vdot = 0.0
     for a in activities:
-        if a.distance_m >= 1500:  # ignore very short segments
+        if plausible_effort(a.distance_m, a.moving_time_s):
             best_vdot = max(best_vdot, vdot_from_performance(a.distance_m, a.moving_time_s))
 
     recent_cut = as_of - timedelta(days=42)
     recent_efforts = [
         vdot_from_performance(a.distance_m, a.moving_time_s)
         for a in activities
-        if a.start_date.date() >= recent_cut and a.distance_m >= 1500
+        if a.start_date.date() >= recent_cut and plausible_effort(a.distance_m, a.moving_time_s)
     ]
     recent_vdot = max(recent_efforts) if recent_efforts else best_vdot
 

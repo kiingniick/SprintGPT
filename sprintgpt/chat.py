@@ -280,7 +280,7 @@ def build_reply(
         race_key = "5k"
 
     # Intent routing.
-    if re.search(r"\b(ready|prepared|on track|can i (make|hit|run)|readiness)\b", q):
+    if re.search(r"\b(ready|prepared|on track|can i (make|hit|achieve|break)|readiness)\b", q):
         return _ready_answer(activities, profile, goal)
     if re.search(r"\b(today|tomorrow|what should i (do|run)|workout|session|schedule|training plan)\b", q):
         return _today_answer(activities, profile, goal, bot)
