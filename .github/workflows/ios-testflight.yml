@@ -1,0 +1,158 @@
+# Build the SprintGPT iOS app on a hosted macOS runner and upload it to
+# TestFlight. No Mac required on your end — GitHub runs the Apple toolchain.
+#
+# ⚠️ REQUIREMENT: TestFlight only accepts builds signed by a PAID Apple
+# Developer Program membership ($99/yr). A free Apple ID cannot upload to
+# TestFlight or install on real devices. Until you enroll and add the secrets
+# below, this workflow will stop at the preflight step with instructions.
+#
+# Add these repository secrets (Settings → Secrets and variables → Actions):
+#   APPLE_TEAM_ID                 - 10-char Team ID (App Store Connect → Membership)
+#   ASC_KEY_ID                    - App Store Connect API key ID
+#   ASC_ISSUER_ID                 - App Store Connect API issuer ID
+#   ASC_PRIVATE_KEY               - contents of the AuthKey_XXXX.p8 file (paste the whole thing)
+#
+# Create the API key at: App Store Connect → Users and Access → Integrations →
+# App Store Connect API → generate a key with "App Manager" access.
+#
+# First run: this creates the app record's build. You must create the app in
+# App Store Connect once (bundle id: com.sprintgpt.app) before uploading.
+
+name: iOS TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: "Build number (must increase each upload)"
+        required: true
+        default: "1"
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 45
+    env:
+      APP_ID: com.sprintgpt.app
+      APP_NAME: SprintGPT
+      SCHEME: App
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preflight — check signing secrets
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+        run: |
+          missing=0
+          for v in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_PRIVATE_KEY; do
+            if [ -z "${!v}" ]; then echo "::error::Missing secret $v"; missing=1; fi
+          done
+          if [ "$missing" = "1" ]; then
+            echo "TestFlight needs a PAID Apple Developer account + the secrets listed"
+            echo "in .github/workflows/ios-testflight.yml. Add them, then re-run."
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Capacitor + generate the iOS project
+        working-directory: ios
+        run: |
+          npm install
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: Add app icon
+        working-directory: ios
+        run: |
+          ICONSET="App/App/Assets.xcassets/AppIcon.appiconset"
+          if [ -d "$ICONSET" ]; then
+            cp "../sprintgpt/static/icon-1024.png" "$ICONSET/AppIcon-512@2x.png" || true
+          fi
+
+      - name: Import App Store Connect API key
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/private_keys
+          echo "$ASC_PRIVATE_KEY" > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
+
+      - name: Set version + build number
+        working-directory: ios/App
+        env:
+          BUILD_NUMBER: ${{ github.event.inputs.build_number }}
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" App/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.6" App/Info.plist || true
+
+      - name: Archive
+        working-directory: ios/App
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcodebuild -workspace App.xcworkspace \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/SprintGPT.xcarchive" \
+            -destination "generic/platform=iOS" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            PRODUCT_BUNDLE_IDENTIFIER="$APP_ID" \
+            archive
+
+      - name: Export .ipa
+        working-directory: ios/App
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>destination</key><string>export</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/SprintGPT.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Upload the build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SprintGPT-ipa
+          path: ${{ runner.temp }}/export/*.ipa
+
+      - name: Upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          IPA=$(ls "$RUNNER_TEMP"/export/*.ipa | head -n1)
+          xcrun altool --upload-app -f "$IPA" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
