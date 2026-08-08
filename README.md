@@ -20,6 +20,7 @@ personalized training plan — all built **by runners, for runners**.
 
 - [Why SprintGPT?](#-why-sprintgpt)
 - [Quick start](#-quick-start-2-minutes)
+- [Install by platform](#-install-by-platform)
 - [What you get](#-what-you-get)
 - [Bringing in your runs](#-bringing-in-your-runs)
 - [Using it on your phone](#-using-it-on-your-phone)
@@ -74,6 +75,95 @@ python main.py --port 8000     # run on a custom port
 python main.py --no-browser    # don't auto-open a browser
 python main.py --host 0.0.0.0  # expose on your local network (for phones)
 ```
+</details>
+
+---
+
+## 📲 Install by platform
+
+Pick your device below for step-by-step install instructions.
+
+<details>
+<summary><b>🤖 Android — install the native app (APK)</b></summary>
+
+SprintGPT ships as a **fully native Android app** that runs entirely on your phone — no server or internet connection needed.
+
+1. On your phone, open the [latest release](https://github.com/kiingniick/SprintGPT/releases/latest) and download **`SprintGPT-<version>.apk`**.
+2. Tap the downloaded file. If prompted, allow **Install from unknown sources** for your browser or files app.
+3. Open **SprintGPT**. The first launch takes a few seconds to unpack its built-in Python runtime, then you're in.
+
+> Requires a 64-bit (`arm64-v8a`) device — virtually every phone from the last several years. The APK is debug-signed for easy sideloading.
+</details>
+
+<details>
+<summary><b>🍎 iPhone / iPad — install as a web app</b></summary>
+
+There's no App Store build yet, but SprintGPT is an installable Progressive Web App:
+
+1. Make sure a SprintGPT server is reachable — run one yourself (see Windows/macOS/Linux below) or use your hosted URL — and open it in **Safari**.
+2. Tap the **Share** button, then **Add to Home Screen**.
+3. Launch it from the new icon; it opens full-screen with an app-style tab bar.
+</details>
+
+<details>
+<summary><b>🪟 Windows — run from source</b></summary>
+
+Install [Python 3.11+](https://www.python.org/downloads/windows/) (tick **"Add Python to PATH"**), then in PowerShell:
+
+```powershell
+git clone https://github.com/kiingniick/SprintGPT.git
+cd SprintGPT
+python -m venv .venv; .\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python main.py
+```
+
+Your browser opens at <http://127.0.0.1:5000>. To keep it like a desktop app, click the **Install** icon in Chrome/Edge's address bar.
+</details>
+
+<details>
+<summary><b>🍏 macOS — run from source</b></summary>
+
+Install Python 3.11+ (`brew install python`, or from [python.org](https://www.python.org/downloads/macos/)), then in Terminal:
+
+```bash
+git clone https://github.com/kiingniick/SprintGPT.git
+cd SprintGPT
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python3 main.py
+```
+
+Open <http://127.0.0.1:5000>. In Chrome/Edge you can **Install** it as an app; in Safari (Sonoma+) use **File → Add to Dock**.
+</details>
+
+<details>
+<summary><b>🐧 Linux — run from source</b></summary>
+
+Install Python 3.11+ (e.g. `sudo apt install python3 python3-venv python3-pip`), then in a terminal:
+
+```bash
+git clone https://github.com/kiingniick/SprintGPT.git
+cd SprintGPT
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python3 main.py
+```
+
+Open <http://127.0.0.1:5000> and use your browser's **Install app** option for a standalone window.
+</details>
+
+<details>
+<summary><b>🛠️ Build the Android APK yourself</b></summary>
+
+Want to build the native app from source? See [`android/README.md`](https://github.com/kiingniick/SprintGPT/blob/main/android/README.md) — you'll need JDK 17, the Android SDK (platform 34), and a Python 3.12 interpreter for Chaquopy, then:
+
+```powershell
+cd android
+.\gradlew.bat assembleDebug -PbuildPython="C:/path/to/python3.12/python.exe"
+```
+
+The APK lands in `android/app/build/outputs/apk/debug/app-debug.apk`.
 </details>
 
 ---
