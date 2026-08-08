@@ -54,6 +54,7 @@ from .importer import (
 from .mailer import MailerError, send_email
 from .meets import MeetImportError, import_results, search_athletes
 from .models import Goal, Profile
+from .platforms import PLATFORMS, RELEASES_URL, detect_platform
 from .planner import PlanContext, generate_plan, race_week_note
 from .predictor import PacePredictor
 from .storage import Storage
@@ -191,7 +192,8 @@ def create_app() -> Flask:
     # Pages visible without an account. Everything else requires logging in, so
     # the only thing a signed-out visitor ever sees is the start guide.
     PUBLIC_ENDPOINTS = {"welcome", "login", "signup", "logout", "service_worker",
-                        "static", "forgot_password", "reset_password", "docs", "readme_raw"}
+                        "static", "forgot_password", "reset_password", "docs", "readme_raw",
+                        "install"}
 
     @app.before_request
     def require_login():
@@ -225,7 +227,19 @@ def create_app() -> Flask:
         # Logged-in users don't need the sign-up guide; send them to their dashboard.
         if session.get("uid"):
             return redirect(url_for("dashboard"))
-        return render_template("welcome.html")
+        platform = detect_platform(request.headers.get("User-Agent", ""))
+        return render_template("welcome.html", detected_platform=platform)
+
+    # ---- install / get the app (platform-aware) ----------------------------
+    @app.route("/install")
+    def install():
+        platform = detect_platform(request.headers.get("User-Agent", ""))
+        return render_template(
+            "install.html",
+            platforms=PLATFORMS,
+            detected_platform=platform,
+            releases_url=RELEASES_URL,
+        )
 
     # ---- documentation (renders the project README) ------------------------
     README_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "README.md")

@@ -86,7 +86,13 @@ python main.py --host 0.0.0.0  # expose on your local network (for phones)
 
 ## 📲 Install by platform
 
-Pick your device below for step-by-step install instructions.
+> **Easiest of all:** open **[SprintGPT (live)](https://kiingniick.github.io/SprintGPT/)** and the
+> homepage **auto-detects your device** and shows a one-tap installer — download the Android app,
+> "Add to Home Screen" on iPhone, or **one-click Install app** on Windows/macOS/Linux. You can jump
+> straight there anytime via **[/install](https://kiingniick.github.io/SprintGPT/install)** (also in
+> the ☰ menu once you're signed in).
+
+Prefer to do it by hand? Pick your device below for step-by-step instructions.
 
 <details>
 <summary><b>🤖 Android — install the native app (APK)</b></summary>
@@ -122,9 +128,13 @@ There's no App Store build yet, but SprintGPT is an installable Progressive Web 
 </details>
 
 <details>
-<summary><b>🪟 Windows — run from source</b></summary>
+<summary><b>🪟 Windows — one-click install or run from source</b></summary>
 
-Install [Python 3.11+](https://www.python.org/downloads/windows/) (tick **"Add Python to PATH"**), then in PowerShell:
+**Easiest:** open the [live app](https://kiingniick.github.io/SprintGPT/) in **Chrome or Edge** and
+click **Install app** on the homepage (or the install icon in the address bar). SprintGPT opens in its
+own window and pins to your Start menu — no Python needed.
+
+**Run your own server instead?** Install [Python 3.11+](https://www.python.org/downloads/windows/) (tick **"Add Python to PATH"**), then in PowerShell:
 
 ```powershell
 git clone https://github.com/kiingniick/SprintGPT.git
@@ -138,9 +148,13 @@ Your browser opens at <http://127.0.0.1:5000>. To keep it like a desktop app, cl
 </details>
 
 <details>
-<summary><b>🍏 macOS — run from source</b></summary>
+<summary><b>🍏 macOS — one-click install or run from source</b></summary>
 
-Install Python 3.11+ (`brew install python`, or from [python.org](https://www.python.org/downloads/macos/)), then in Terminal:
+**Easiest:** open the [live app](https://kiingniick.github.io/SprintGPT/) and click **Install app** on
+the homepage (Chrome/Edge), or in Safari use **File → Add to Dock**. It lands in your Dock as a
+standalone app — no Python needed.
+
+**Run your own server instead?** Install Python 3.11+ (`brew install python`, or from [python.org](https://www.python.org/downloads/macos/)), then in Terminal:
 
 ```bash
 git clone https://github.com/kiingniick/SprintGPT.git
@@ -154,9 +168,13 @@ Open <http://127.0.0.1:5000>. In Chrome/Edge you can **Install** it as an app; i
 </details>
 
 <details>
-<summary><b>🐧 Linux — run from source</b></summary>
+<summary><b>🐧 Linux — one-click install or run from source</b></summary>
 
-Install Python 3.11+ (e.g. `sudo apt install python3 python3-venv python3-pip`), then in a terminal:
+**Easiest:** open the [live app](https://kiingniick.github.io/SprintGPT/) in **Chrome, Chromium, or
+Edge** and click **Install app** on the homepage. You get a standalone launcher and window — no Python
+needed.
+
+**Run your own server instead?** Install Python 3.11+ (e.g. `sudo apt install python3 python3-venv python3-pip`), then in a terminal:
 
 ```bash
 git clone https://github.com/kiingniick/SprintGPT.git
@@ -495,8 +513,9 @@ wsgi.py                  # WSGI entry point (gunicorn/waitress: `wsgi:app`)
 Dockerfile, Procfile     # container + buildpack deploy for self-hosting
 requirements.txt, .env.example, README.md, sample_runs.csv
 sprintgpt/
-  webapp.py              # Flask app + routes (accounts, dashboard, docs, admin, sw.js)
-  templates/             # welcome, login, signup, account, admin, docs, dashboard, chat, meets, plan, splits, activity, base
+  webapp.py              # Flask app + routes (accounts, dashboard, docs, admin, install, sw.js)
+  platforms.py           # platform detection + data-driven install instructions (/install page)
+  templates/             # welcome, install, login, signup, account, admin, docs, dashboard, chat, meets, plan, splits, activity, base
   static/style.css       # mobile-first responsive dark UI
   static/manifest.webmanifest, sw.js, icon.svg   # PWA (installable app)
   config.py              # env / token loading

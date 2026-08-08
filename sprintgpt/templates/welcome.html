@@ -13,6 +13,10 @@
   <div class="welcome-cta">
     <a class="btn btn-primary btn-lg" href="{{ url_for('signup') }}">Create free account</a>
     <a class="btn btn-lg" href="{{ url_for('login') }}">Log in</a>
+    {% if not is_app %}
+      {% set plabels = {'android':'Get the Android app','ios':'Add to iPhone','windows':'Install for Windows','macos':'Install for Mac','linux':'Install for Linux'} %}
+      <a class="btn btn-lg" href="{{ url_for('install') }}">{{ plabels[detected_platform] if detected_platform in plabels else 'Install the app' }}</a>
+    {% endif %}
     <a class="btn btn-lg" href="{{ url_for('docs') }}">Documentation</a>
   </div>
 </section>

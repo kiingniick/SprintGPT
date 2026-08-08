@@ -1,6 +1,9 @@
 .env
 .secret_key
 *.db
+*.db-wal
+*.db-shm
+data/
 __pycache__/
 *.pyc
 .venv/

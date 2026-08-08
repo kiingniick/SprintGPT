@@ -1,7 +1,7 @@
 // SprintGPT service worker: caches the app shell and static assets so the app
 // loads fast and can be installed to a phone's home screen.
 // Bump CACHE whenever static assets change so clients pick up the new version.
-const CACHE = "sprintgpt-v12";
+const CACHE = "sprintgpt-v13";
 const ASSETS = [
   "/static/style.css",
   "/static/icon.svg",
