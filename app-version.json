@@ -1,7 +1,7 @@
 {
-  "versionCode": 8,
-  "versionName": "1.7",
+  "versionCode": 9,
+  "versionName": "1.8",
   "url": "https://github.com/kiingniick/SprintGPT/releases/latest",
   "apkUrl": "https://github.com/kiingniick/SprintGPT/releases/latest/download/SprintGPT.apk",
-  "notes": "Paceloop is here! New name + icon, and the app now uses a permanent link so it keeps working even when the server address changes."
+  "notes": "Paceloop 1.8: track your BMI, height and weight, and get personalized strength-training guidance that scales with your mileage and goals."
 }
