@@ -20,12 +20,13 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import sqlite3
 import time
 import traceback
 import uuid
 from logging.handlers import RotatingFileHandler
-from typing import Callable, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from flask import Flask, current_app, g, request
 from werkzeug.exceptions import HTTPException
@@ -153,6 +154,73 @@ def _error_page(incident: str, healed_but_failed: bool) -> str:
   </div>
   <div class="id">Incident <code>{incident}</code></div>
 </body></html>"""
+
+
+_INCIDENT_RE = re.compile(r"incident=([0-9a-f]{6,})")
+
+
+def _field(line: str, key: str) -> str:
+    i = line.find(key)
+    if i < 0:
+        return ""
+    parts = line[i + len(key):].split()
+    return parts[0] if parts else ""
+
+
+def read_incidents(limit: int = 20) -> Dict[str, object]:
+    """Parse the crash log into a compact, admin-friendly summary.
+
+    Returns ``{"rows": [...], "total": N, "recovered": N, "failed": N}`` where
+    each row is ``{id, time, path, type, label, status}`` and status is one of
+    ``recovered`` (auto-fixed), ``failed`` (shown the recovery page), or
+    ``shown`` (unrecoverable, logged). Newest first. Safe if the log is missing.
+    (Key is ``rows`` not ``items`` to avoid clashing with dict.items in templates.)
+    """
+    empty: Dict[str, object] = {"rows": [], "total": 0, "recovered": 0, "failed": 0}
+    path = os.path.join(_LOG_DIR, "errors.log")
+    if not os.path.exists(path):
+        return empty
+
+    incidents: Dict[str, dict] = {}
+    order: List[str] = []
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                m = _INCIDENT_RE.search(line)
+                if not m:
+                    continue
+                iid = m.group(1)[:8]
+                rec = incidents.get(iid)
+                if rec is None:
+                    rec = {"id": iid, "time": "", "path": "", "type": "",
+                           "label": "", "status": "shown"}
+                    incidents[iid] = rec
+                    order.append(iid)
+                ts = line[:19]
+                if len(ts) >= 19 and ts[4:5] == "-" and ts[13:14] == ":":
+                    rec["time"] = ts
+                if " path=" in line:
+                    rec["path"] = _field(line, "path=")
+                    rec["type"] = _field(line, "type=")
+                    rec["label"] = _field(line, "label=")
+                if "recovered incident=" in line:
+                    rec["status"] = "recovered"
+                elif "retry failed incident=" in line:
+                    rec["status"] = "failed"
+    except OSError:
+        return empty
+
+    rows = [incidents[i] for i in reversed(order)]
+    if limit:
+        rows = rows[:limit]
+    recovered = sum(1 for r in incidents.values() if r["status"] == "recovered")
+    failed = sum(1 for r in incidents.values() if r["status"] == "failed")
+    return {
+        "rows": rows,
+        "total": len(incidents),
+        "recovered": recovered,
+        "failed": failed,
+    }
 
 
 def install_crash_handler(app: Flask) -> None:

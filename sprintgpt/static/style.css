@@ -1199,3 +1199,16 @@ details.tools summary::-webkit-details-marker { display: none; }
 @media (max-width: 560px) {
   .install-grid { grid-template-columns: 1fr; }
 }
+
+/* ---- Status pills (admin crash-handler table) ------------------------- */
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pill-ok   { background: color-mix(in srgb, #34d399 22%, transparent); color: #6ee7b7; }
+.pill-bad  { background: color-mix(in srgb, #f87171 22%, transparent); color: #fca5a5; }
+.pill-warn { background: color-mix(in srgb, #facc15 20%, transparent); color: #fde047; }

@@ -98,6 +98,55 @@
 </div>
 
 <div class="card">
+  <h2>System health &mdash; crash handler</h2>
+  <p class="hint" style="margin-top:-4px">
+    Errors are auto-recovered when possible; the rest show a friendly page. Newest first.
+  </p>
+  <div class="admin-stats" style="margin:14px 0 18px">
+    <div class="stat-tile">
+      <div class="stat-num" id="s-incidents_total">{{ incidents.total }}</div>
+      <div class="stat-label">Incidents logged</div>
+      <div class="stat-sub">all time</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-num" id="s-incidents_recovered">{{ incidents.recovered }}</div>
+      <div class="stat-label">Auto-recovered</div>
+      <div class="stat-sub">fixed on the spot</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-num" id="s-incidents_failed">{{ incidents.failed }}</div>
+      <div class="stat-label">Showed recovery page</div>
+      <div class="stat-sub">needs a look</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr><th>When</th><th>Path</th><th>Error</th><th>Category</th><th>Outcome</th><th>Incident</th></tr>
+      </thead>
+      <tbody>
+        {% for i in incidents.rows %}
+        <tr>
+          <td>{{ i.time }}</td>
+          <td>{{ i.path }}</td>
+          <td>{{ i.type }}</td>
+          <td>{{ i.label }}</td>
+          <td>
+            {% if i.status == 'recovered' %}<span class="pill pill-ok">Auto-recovered</span>
+            {% elif i.status == 'failed' %}<span class="pill pill-bad">Recovery page</span>
+            {% else %}<span class="pill pill-warn">Logged</span>{% endif %}
+          </td>
+          <td class="admin-email">{{ i.id }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="hint">No incidents logged. Smooth sailing. 🌊</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
   <h2>Recent signups</h2>
   <div class="table-wrap">
     <table class="admin-table">
@@ -206,6 +255,11 @@
         let val = v;
         if (k === "total_distance_km") val = Math.round(v);
         setNum("s-" + k, val, COMMA.has(k));
+      }
+      if (d.incidents) {
+        setNum("s-incidents_total", d.incidents.total);
+        setNum("s-incidents_recovered", d.incidents.recovered);
+        setNum("s-incidents_failed", d.incidents.failed);
       }
       signupChart.data.labels = d.signup_labels;
       signupChart.data.datasets[0].data = d.signup_values;

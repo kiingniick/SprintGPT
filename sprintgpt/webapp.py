@@ -57,7 +57,7 @@ from .models import Goal, Profile
 from .platforms import PLATFORMS, RELEASES_URL, detect_platform
 from .planner import PlanContext, generate_plan, race_week_note
 from .predictor import PacePredictor
-from .recovery import install_crash_handler
+from .recovery import install_crash_handler, read_incidents
 from .storage import Storage
 from .strava import StravaClient, StravaError, StravaTokens
 
@@ -794,6 +794,8 @@ def create_app() -> Flask:
         recent = store.recent_signups(25)
         store.close()
 
+        incidents = read_incidents(25)
+
         return render_template(
             "admin.html",
             stats=stats,
@@ -805,6 +807,7 @@ def create_app() -> Flask:
             themes_dist=themes_dist,
             locations=locations,
             recent=recent,
+            incidents=incidents,
         )
 
     @app.route("/admin/stats.json")
@@ -822,12 +825,18 @@ def create_app() -> Flask:
         series = store.signup_series(30)
         sources = store.source_breakdown()
         store.close()
+        incidents = read_incidents(0)
         return jsonify({
             "stats": stats,
             "signup_labels": [d[5:] for d, _ in series],
             "signup_values": [c for _, c in series],
             "source_labels": [s[0] for s in sources],
             "source_values": [s[1] for s in sources],
+            "incidents": {
+                "total": incidents["total"],
+                "recovered": incidents["recovered"],
+                "failed": incidents["failed"],
+            },
             "updated_at": datetime.now().strftime("%H:%M:%S"),
         })
 
