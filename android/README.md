@@ -27,6 +27,17 @@ which `MainActivity` intercepts to show the native setup screen).
 - The WebView's User-Agent is tagged with `SprintGPTApp/1.0` so the web app knows
   it's running inside the app and shows the connection controls.
 
+### Staying up to date
+
+- A few seconds after launch, `MainActivity.checkForUpdate()` fetches a small public
+  manifest — [`app-version.json`](https://kiingniick.github.io/SprintGPT/app-version.json)
+  hosted on GitHub Pages — off the UI thread. Using Pages means the check works even
+  in fully offline/on-device mode or when your server is down.
+- If the manifest's `versionCode` is greater than the installed `BuildConfig.VERSION_CODE`,
+  it shows an **Update available** dialog with **Update now** (opens `apkUrl`), **Later**,
+  and **Skip this version** (remembered in `SharedPreferences` so the user isn't nagged
+  until an even newer build). Network failures are swallowed silently.
+
 ## Building the APK
 
 Requirements: JDK 17, the Android SDK (platform 34, build-tools 34), and a Python
@@ -49,3 +60,21 @@ Requirements: JDK 17, the Android SDK (platform 34, build-tools 34), and a Pytho
 3. The installable APK is written to
    `app/build/outputs/apk/debug/app-debug.apk`. Copy it to an Android phone and
    open it (you may need to allow "install from unknown sources").
+
+> Tip: bake in the recommended server so "Connect to a server" is pre-filled:
+> `.\gradlew.bat assembleDebug -PbuildPython=... -PserverUrl="https://kiingniick.github.io/SprintGPT/"`
+
+## Publishing a release (so auto-update works)
+
+The in-app updater and the website's one-tap download both rely on two things being
+in sync. When you ship a new build:
+
+1. **Bump the version** in `app/build.gradle` (`versionCode` **and** `versionName`).
+2. **Build** the APK (steps above).
+3. **Create a GitHub release** and upload the APK **twice**: once versioned
+   (`SprintGPT-<version>.apk`) and once with the fixed name **`SprintGPT.apk`**. The
+   fixed name is what powers the permanent download link
+   `releases/latest/download/SprintGPT.apk` used by the installer page.
+4. **Update the manifest** [`app-version.json`](https://kiingniick.github.io/SprintGPT/app-version.json)
+   on the `gh-pages` branch to the new `versionCode`/`versionName` (and a short
+   `notes` line). Existing users are reminded on their next launch.

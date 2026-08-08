@@ -1,7 +1,9 @@
 package com.sprintgpt.app;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -20,6 +22,13 @@ import android.webkit.ValueCallback;
 
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
+
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Hosts SprintGPT in a WebView. Two ways to run:
@@ -42,8 +51,15 @@ public class MainActivity extends Activity {
     private static final String PREFS = "sprintgpt";
     private static final String KEY_MODE = "mode";       // "device" | "server"
     private static final String KEY_URL = "server_url";
+    private static final String KEY_SKIP_VERSION = "skip_version";  // update the user dismissed
     private static final String MODE_DEVICE = "device";
     private static final String MODE_SERVER = "server";
+
+    // Public, always-online manifest of the newest release (served from GitHub
+    // Pages, so update checks work even when the tunnel/server is down or the app
+    // is running fully on-device).
+    private static final String UPDATE_URL =
+        "https://kiingniick.github.io/SprintGPT/app-version.json";
 
     private WebView web;
     private boolean serverStarted = false;   // embedded Python launched
@@ -146,6 +162,97 @@ public class MainActivity extends Activity {
         } else {
             applyMode();
         }
+
+        // Give the app a few seconds to settle, then quietly check for a newer build.
+        handler.postDelayed(new Runnable() {
+            @Override public void run() { checkForUpdate(); }
+        }, 4000);
+    }
+
+    // ---- self-update reminder ----------------------------------------------
+
+    /** Fetch the published version manifest off the UI thread and, if a newer
+     *  build exists, remind the user with a dismissible dialog. Fails silently
+     *  (no network, offline, etc.) — an update check should never interrupt use. */
+    private void checkForUpdate() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpURLConnection c = null;
+                try {
+                    c = (HttpURLConnection) new URL(UPDATE_URL).openConnection();
+                    c.setConnectTimeout(6000);
+                    c.setReadTimeout(6000);
+                    c.setRequestProperty("Cache-Control", "no-cache");
+                    if (c.getResponseCode() != 200) {
+                        return;
+                    }
+                    BufferedReader r = new BufferedReader(
+                        new InputStreamReader(c.getInputStream(), "UTF-8"));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = r.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    r.close();
+
+                    JSONObject o = new JSONObject(sb.toString());
+                    final int latest = o.optInt("versionCode", 0);
+                    final String name = o.optString("versionName", "");
+                    final String apk = o.optString("apkUrl", o.optString("url", ""));
+                    final String notes = o.optString("notes", "");
+
+                    if (latest > BuildConfig.VERSION_CODE && apk != null && !apk.isEmpty()) {
+                        handler.post(new Runnable() {
+                            @Override public void run() {
+                                promptUpdate(latest, name, apk, notes);
+                            }
+                        });
+                    }
+                } catch (Throwable ignored) {
+                    // Offline or unreachable: skip silently, try again next launch.
+                } finally {
+                    if (c != null) {
+                        c.disconnect();
+                    }
+                }
+            }
+        }, "sprintgpt-update-check").start();
+    }
+
+    private void promptUpdate(final int latest, String name, final String apkUrl, String notes) {
+        if (isFinishing()) {
+            return;
+        }
+        SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        // Respect "Skip this version": don't nag again until an even newer build.
+        if (prefs.getInt(KEY_SKIP_VERSION, 0) >= latest) {
+            return;
+        }
+        String msg = "A new version" + (name == null || name.isEmpty() ? "" : " (" + name + ")")
+                + " of SprintGPT is available.";
+        if (notes != null && !notes.isEmpty()) {
+            msg += "\n\n" + notes;
+        }
+        new AlertDialog.Builder(this)
+            .setTitle("Update available")
+            .setMessage(msg)
+            .setCancelable(true)
+            .setPositiveButton("Update now", new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int which) {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl)));
+                    } catch (Throwable ignored) {}
+                }
+            })
+            .setNegativeButton("Later", null)
+            .setNeutralButton("Skip this version", new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int which) {
+                    getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                        .putInt(KEY_SKIP_VERSION, latest).apply();
+                }
+            })
+            .show();
     }
 
     /** Intercept our custom scheme so any in-app link can open the setup screen. */

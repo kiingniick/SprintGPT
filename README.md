@@ -104,9 +104,13 @@ SprintGPT ships as a **fully native Android app**. On first launch it asks how y
 
 Install steps:
 
-1. On your phone, open the [latest release](https://github.com/kiingniick/SprintGPT/releases/latest) and download **`SprintGPT-<version>.apk`**.
+1. On your phone, open the [live app](https://kiingniick.github.io/SprintGPT/) — the homepage detects Android and offers a **one-tap download** — or grab the APK directly: **[Download SprintGPT.apk](https://github.com/kiingniick/SprintGPT/releases/latest/download/SprintGPT.apk)**.
 2. Tap the downloaded file. If prompted, allow **Install from unknown sources** for your browser or files app.
 3. Open **SprintGPT** and pick a mode. (On-device mode takes a few seconds the first time to unpack its built-in Python runtime.)
+
+> **Stays up to date.** On launch the app quietly checks for a newer release and, if
+> one exists, shows an **Update available** reminder with a one-tap download (you can
+> also choose *Later* or *Skip this version*).
 
 > Release builds come **pre-filled with a recommended server** so "Connect to a server"
 > is one tap — you can always type your own [self-hosted URL](#-host-it-yourself-run-over-the-internet) instead.

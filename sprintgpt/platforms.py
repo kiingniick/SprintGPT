@@ -22,6 +22,9 @@ from __future__ import annotations
 
 # One place to change where the native app is published.
 RELEASES_URL = "https://github.com/kiingniick/SprintGPT/releases/latest"
+# Every release uploads a fixed-name copy of the APK, so this always points at the
+# newest build straight from the repo (no version number to keep in sync here).
+APK_URL = "https://github.com/kiingniick/SprintGPT/releases/latest/download/SprintGPT.apk"
 
 
 def detect_platform(user_agent: str) -> str:
@@ -51,7 +54,7 @@ PLATFORMS = [
         "name": "Android",
         "icon": "android",
         "tagline": "Install the native app (works offline or online)",
-        "cta": {"type": "download", "label": "Download the app (.apk)", "href": RELEASES_URL},
+        "cta": {"type": "download", "label": "Download the app (.apk)", "href": APK_URL},
         "steps": [
             "Tap <strong>Download the app</strong> above and open the "
             "<code>SprintGPT-*.apk</code> file.",
@@ -60,7 +63,8 @@ PLATFORMS = [
             "Open <strong>SprintGPT</strong> and choose <strong>Connect to a "
             "server</strong> (already filled in) or run it fully on your phone.",
         ],
-        "note": "Prefer no install? Use “Add to Home Screen” from your browser menu instead.",
+        "note": "The app checks for updates on launch and reminds you when a newer "
+                "version is available. Prefer no install? Use “Add to Home Screen” instead.",
     },
     {
         "id": "ios",
