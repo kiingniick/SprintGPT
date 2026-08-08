@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SprintGPT — Launching…</title>
+  <title>Paceloop — Launching…</title>
   <meta name="theme-color" content="#0b0f17" />
   <style>
     html, body { height: 100%; margin: 0; }
@@ -36,10 +36,10 @@
   </style>
 </head>
 <body>
-  <div class="mark">S</div>
-  <h1>Opening SprintGPT…</h1>
+  <div class="mark">P</div>
+  <h1>Opening Paceloop…</h1>
   <p id="status">Finding the current server address…</p>
-  <a id="manual" class="btn" href="#" style="display:none">Tap to open SprintGPT</a>
+  <a id="manual" class="btn" href="#" style="display:none">Tap to open Paceloop</a>
   <div class="spin" id="spin"></div>
   <div class="muted">If this doesn't open in a few seconds, tap the button above.</div>
 
@@ -61,12 +61,12 @@
         if (!/^https?:\/\//.test(url)) throw new Error("bad url");
         manual.href = url;
         manual.style.display = "inline-block";
-        statusEl.textContent = "Taking you to SprintGPT…";
+        statusEl.textContent = "Taking you to Paceloop…";
         // Replace so the redirector isn't left in history.
         window.location.replace(url);
       })
       .catch(function () {
-        fail("The SprintGPT server looks offline at the moment. Please try again in a minute.");
+        fail("The Paceloop server looks offline at the moment. Please try again in a minute.");
       });
   </script>
 </body>
