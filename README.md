@@ -12,6 +12,10 @@ personalized training plan — all built **by runners, for runners**.
 ![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?logo=pwa&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-2ea44f)
 
+### 👉 [**Open SprintGPT (live)**](https://kiingniick.github.io/SprintGPT/) 👈
+
+This one permanent link always opens the current live server — bookmark it, share it, or paste it into the app's **Connect to a server** box.
+
 </div>
 
 ---
