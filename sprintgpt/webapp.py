@@ -12,6 +12,7 @@ import secrets
 import tempfile
 import zipfile
 from datetime import date, datetime, timedelta, timezone
+from typing import Optional
 
 from flask import (
     Flask,
@@ -106,6 +107,17 @@ def _current_user(store: Storage) -> int:
     return int(session["uid"])
 
 
+def _is_admin_email(email: str, uid: int, first_uid: Optional[int]) -> bool:
+    """Admin if listed in ADMIN_EMAILS, or (when none set) the first account."""
+    if not email:
+        return False
+    admins = load_config().admin_emails
+    if admins:
+        return email.strip().lower() in admins
+    # Bootstrap: with no ADMIN_EMAILS configured, the earliest account is owner.
+    return first_uid is not None and uid == first_uid
+
+
 def _strava_client_for(store: Storage, user_id: int) -> StravaClient:
     """Build a StravaClient bound to a user's stored tokens (with auto-persist)."""
     cfg = load_config()
@@ -148,6 +160,7 @@ def create_app() -> Flask:
         if uid:
             store = _store()
             row = store.get_user(uid)
+            first_uid = store.first_user_id()
             store.close()
             if row and row["email"]:
                 account = {
@@ -159,6 +172,7 @@ def create_app() -> Flask:
                 theme_key = row["theme"] or DEFAULT_THEME
                 accent, accent2 = row["accent"], row["accent2"]
                 account["bot_name"] = row["bot_name"] or "Coach"
+                account["is_admin"] = _is_admin_email(row["email"], uid, first_uid)
         palette = resolve_palette(theme_key, accent, accent2)
         return {
             "account": account,
@@ -720,6 +734,63 @@ def create_app() -> Flask:
             flash("Password updated.", "success")
         store.close()
         return redirect(url_for("account_settings"))
+
+    # ---- admin analytics dashboard ------------------------------------------
+    @app.route("/admin")
+    def admin():
+        store = _store()
+        uid = _current_user(store)
+        row = store.get_user(uid)
+        first_uid = store.first_user_id()
+        if not row or not _is_admin_email(row["email"], uid, first_uid):
+            store.close()
+            flash("That area is for administrators only.", "error")
+            return redirect(url_for("dashboard"))
+
+        stats = store.admin_stats()
+        series = store.signup_series(30)
+        sources = store.source_breakdown()
+        themes_dist = store.theme_breakdown()
+        locations = store.top_locations(8)
+        recent = store.recent_signups(25)
+        store.close()
+
+        return render_template(
+            "admin.html",
+            stats=stats,
+            signup_labels=[d[5:] for d, _ in series],   # MM-DD
+            signup_values=[c for _, c in series],
+            sources=sources,
+            source_labels=[s[0] for s in sources],
+            source_values=[s[1] for s in sources],
+            themes_dist=themes_dist,
+            locations=locations,
+            recent=recent,
+        )
+
+    @app.route("/admin/stats.json")
+    def admin_stats_json():
+        """Private, admin-only live feed powering the auto-updating dashboard."""
+        store = _store()
+        uid = _current_user(store)
+        row = store.get_user(uid)
+        first_uid = store.first_user_id()
+        if not row or not _is_admin_email(row["email"], uid, first_uid):
+            store.close()
+            return jsonify({"error": "forbidden"}), 403
+
+        stats = store.admin_stats()
+        series = store.signup_series(30)
+        sources = store.source_breakdown()
+        store.close()
+        return jsonify({
+            "stats": stats,
+            "signup_labels": [d[5:] for d, _ in series],
+            "signup_values": [c for _, c in series],
+            "source_labels": [s[0] for s in sources],
+            "source_values": [s[1] for s in sources],
+            "updated_at": datetime.now().strftime("%H:%M:%S"),
+        })
 
     # ---- appearance / color theme -------------------------------------------
     @app.route("/appearance", methods=["POST"])

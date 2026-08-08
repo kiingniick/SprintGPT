@@ -107,6 +107,24 @@ APP_BASE_URL=https://your-public-url  # optional; used to build links in emails
 
 Reset tokens are random, stored **hashed**, single-use, and expire after 1 hour.
 
+### Admin analytics dashboard
+
+Admins get an **Analytics** tab (top nav) at `/admin` with developer-focused stats:
+
+- **Growth:** total accounts, signups in the last 24h / 7d / 30d, and a 30-day signups chart.
+- **Engagement:** activated users (imported runs) + activation rate, Strava connections,
+  coach-chat volume, race goals set, and password-reset requests.
+- **Usage:** total runs, total kilometers and elevation, runs-by-source breakdown
+  (Strava, manual, CSV, Athletic.net), popular color themes, and where runners are (by state).
+- **Recent signups** table with name, email, location, run count, Strava status, and join date.
+
+Set who can see it via `ADMIN_EMAILS` in `.env` (comma-separated). If left blank, the
+**first account you register is treated as the owner/admin** — so it works instantly for you.
+
+```
+ADMIN_EMAILS=you@example.com,cofounder@example.com
+```
+
 ### Color themes
 
 Every account can pick its own color theme from the dashboard's **Appearance** card. Choose
@@ -308,7 +326,7 @@ main.py                  # launches the web app (or `cli` passthrough)
 requirements.txt, .env.example, README.md, sample_runs.csv
 sprintgpt/
   webapp.py              # Flask app + routes (accounts, dashboard, splits, activity, plan, sw.js)
-  templates/             # welcome, login, signup, forgot, reset, account, dashboard, chat, meets, plan, splits, activity, base
+  templates/             # welcome, login, signup, forgot, reset, account, admin, dashboard, chat, meets, plan, splits, activity, base
   static/style.css       # mobile-first responsive dark UI
   static/manifest.webmanifest, sw.js, icon.svg   # PWA (installable app)
   config.py              # env / token loading

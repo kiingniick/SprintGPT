@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}Admin Analytics - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="page-head admin-head">
+  <div>
+    <h1>Analytics</h1>
+    <p>Private dashboard &mdash; growth, engagement, and usage across every account.</p>
+  </div>
+  <span class="live-pill" id="livePill"><span class="live-dot"></span> Live &middot; <span id="liveTime">just now</span></span>
+</div>
+
+<div class="admin-stats">
+  <div class="stat-tile">
+    <div class="stat-num" id="s-total_accounts">{{ stats.total_accounts }}</div>
+    <div class="stat-label">Total accounts</div>
+    <div class="stat-sub">+<span id="s-signups_7d">{{ stats.signups_7d }}</span> this week</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-num" id="s-signups_24h">{{ stats.signups_24h }}</div>
+    <div class="stat-label">Signups (24h)</div>
+    <div class="stat-sub"><span id="s-signups_30d">{{ stats.signups_30d }}</span> in 30 days</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-num" id="s-accounts_with_data">{{ stats.accounts_with_data }}</div>
+    <div class="stat-label">Activated users</div>
+    <div class="stat-sub"><span id="s-activation_rate">{{ stats.activation_rate }}</span>% imported runs</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-num" id="s-strava_connected">{{ stats.strava_connected }}</div>
+    <div class="stat-label">Strava connected</div>
+    <div class="stat-sub">live OAuth links</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-num" id="s-total_runs">{{ "{:,}".format(stats.total_runs) }}</div>
+    <div class="stat-label">Runs logged</div>
+    <div class="stat-sub"><span id="s-avg_runs_per_active">{{ stats.avg_runs_per_active }}</span> avg / active user</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-num" id="s-total_distance_km">{{ "{:,}".format(stats.total_distance_km|round|int) }}</div>
+    <div class="stat-label">Total km</div>
+    <div class="stat-sub"><span id="s-total_elevation_m">{{ "{:,}".format(stats.total_elevation_m) }}</span> m climbed</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-num" id="s-chat_messages">{{ "{:,}".format(stats.chat_messages) }}</div>
+    <div class="stat-label">Coach messages</div>
+    <div class="stat-sub"><span id="s-chat_users">{{ stats.chat_users }}</span> users chatting</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-num" id="s-goals_set">{{ stats.goals_set }}</div>
+    <div class="stat-label">Race goals set</div>
+    <div class="stat-sub"><span id="s-reset_requests">{{ stats.reset_requests }}</span> password resets</div>
+  </div>
+</div>
+
+<div class="admin-charts">
+  <div class="card">
+    <h2>Signups &mdash; last 30 days</h2>
+    <div class="chart-wrap"><canvas id="signupChart"></canvas></div>
+  </div>
+  <div class="card">
+    <h2>Runs by source</h2>
+    {% if source_values %}
+      <div class="chart-wrap" style="height:220px"><canvas id="sourceChart"></canvas></div>
+    {% else %}
+      <p class="hint">No activities imported yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="admin-charts">
+  <div class="card">
+    <h2>Where runners are</h2>
+    {% if locations %}
+      <table class="admin-table">
+        <thead><tr><th>State / Province</th><th>Accounts</th></tr></thead>
+        <tbody>
+          {% for st, c in locations %}
+          <tr><td>{{ st }}</td><td>{{ c }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="hint">No location data yet.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Popular themes</h2>
+    <div class="theme-bars">
+      {% for t, c in themes_dist %}
+      <div class="theme-bar-row">
+        <span class="theme-bar-name">{{ t }}</span>
+        <span class="theme-bar-count">{{ c }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Recent signups</h2>
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Location</th><th>Runs</th><th>Strava</th><th>Joined</th></tr>
+      </thead>
+      <tbody>
+        {% for u in recent %}
+        <tr>
+          <td>{{ u.name }}</td>
+          <td class="admin-email">{{ u.email }}</td>
+          <td>{{ u.location }}</td>
+          <td>{{ u.runs }}</td>
+          <td>{{ "Yes" if u.strava else "-" }}</td>
+          <td>{{ u.created_at[:10] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="hint">No signups yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const css = getComputedStyle(document.documentElement);
+  const cMuted = css.getPropertyValue("--muted").trim() || "#93a0b8";
+  const cBorder = css.getPropertyValue("--border").trim() || "#26314a";
+  const cAccent = css.getPropertyValue("--accent").trim() || "#4ade80";
+  const cAccent2 = css.getPropertyValue("--accent-2").trim() || "#22d3ee";
+  Chart.defaults.color = cMuted;
+  Chart.defaults.font.family = "Inter, sans-serif";
+
+  const signupChart = new Chart(document.getElementById("signupChart"), {
+    type: "line",
+    data: {
+      labels: {{ signup_labels | tojson }},
+      datasets: [{
+        label: "signups",
+        data: {{ signup_values | tojson }},
+        borderColor: cAccent,
+        backgroundColor: "transparent",
+        tension: 0.3,
+        pointRadius: 2,
+        fill: false,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+        y: { beginAtZero: true, grid: { color: cBorder },
+             ticks: { precision: 0 } }
+      }
+    }
+  });
+
+  let sourceChart = null;
+  const palette = [cAccent, cAccent2, "#facc15", "#fb923c", "#f87171", "#a855f7"];
+  {% if source_values %}
+  sourceChart = new Chart(document.getElementById("sourceChart"), {
+    type: "doughnut",
+    data: {
+      labels: {{ source_labels | tojson }},
+      datasets: [{
+        data: {{ source_values | tojson }},
+        backgroundColor: palette,
+        borderColor: "#161d2b",
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: { legend: { position: "bottom" } }
+    }
+  });
+  {% endif %}
+
+  // ---- live auto-refresh (private admin feed) ----
+  const nf = new Intl.NumberFormat();
+  function setNum(id, value, format) {
+    const el = document.getElementById(id);
+    if (el == null || value == null) return;
+    const text = format ? nf.format(value) : String(value);
+    if (el.textContent !== text) {
+      el.textContent = text;
+      el.classList.remove("tick");    // restart the flash animation
+      void el.offsetWidth;
+      el.classList.add("tick");
+    }
+  }
+  const COMMA = new Set(["total_runs", "total_distance_km", "total_elevation_m", "chat_messages"]);
+  async function refreshStats() {
+    try {
+      const res = await fetch("{{ url_for('admin_stats_json') }}", { headers: { "Accept": "application/json" } });
+      if (!res.ok) return;
+      const d = await res.json();
+      const s = d.stats || {};
+      for (const [k, v] of Object.entries(s)) {
+        let val = v;
+        if (k === "total_distance_km") val = Math.round(v);
+        setNum("s-" + k, val, COMMA.has(k));
+      }
+      signupChart.data.labels = d.signup_labels;
+      signupChart.data.datasets[0].data = d.signup_values;
+      signupChart.update();
+      if (sourceChart && d.source_values) {
+        sourceChart.data.labels = d.source_labels;
+        sourceChart.data.datasets[0].data = d.source_values;
+        sourceChart.update();
+      }
+      const t = document.getElementById("liveTime");
+      if (t) t.textContent = d.updated_at;
+    } catch (e) { /* transient network error; try again next tick */ }
+  }
+  setInterval(refreshStats, 15000);   // live update every 15s
+</script>
+{% endblock %}

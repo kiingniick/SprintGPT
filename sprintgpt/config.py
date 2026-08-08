@@ -36,6 +36,11 @@ def load_config() -> "Config":
         smtp_use_tls=(os.getenv("SMTP_USE_TLS", "true").strip().lower()
                       not in ("0", "false", "no", "off")),
         app_base_url=os.getenv("APP_BASE_URL", "").strip(),
+        admin_emails=tuple(
+            e.strip().lower()
+            for e in os.getenv("ADMIN_EMAILS", "").split(",")
+            if e.strip()
+        ),
     )
 
 
@@ -88,6 +93,7 @@ class Config:
     smtp_from: str = ""
     smtp_use_tls: bool = True
     app_base_url: str = ""
+    admin_emails: tuple = ()
 
     @property
     def strava_configured(self) -> bool:

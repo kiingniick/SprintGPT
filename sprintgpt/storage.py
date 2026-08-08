@@ -8,7 +8,7 @@ are scoped to a user so people only ever see their own data.
 from __future__ import annotations
 
 import sqlite3
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 from .models import Activity, Goal, Profile
@@ -452,6 +452,140 @@ class Storage:
             source=row["source"] or "manual",
             external_id=row["external_id"],
         )
+
+    # ---- admin analytics ----------------------------------------------------
+    def first_user_id(self) -> Optional[int]:
+        """Lowest-id registered account (used as the bootstrap owner/admin)."""
+        row = self.conn.execute(
+            "SELECT MIN(id) AS m FROM users WHERE email IS NOT NULL"
+        ).fetchone()
+        return row["m"] if row and row["m"] is not None else None
+
+    def _scalar(self, query: str, params: tuple = ()):
+        return self.conn.execute(query, params).fetchone()[0]
+
+    def admin_stats(self) -> dict:
+        """Aggregate developer/analytics numbers across all users."""
+        now = datetime.now(timezone.utc)
+
+        def signups_since(days: int) -> int:
+            cutoff = (now - timedelta(days=days)).isoformat()
+            return self._scalar(
+                "SELECT COUNT(*) FROM users WHERE email IS NOT NULL AND created_at >= ?",
+                (cutoff,),
+            )
+
+        total_accounts = self._scalar(
+            "SELECT COUNT(*) FROM users WHERE email IS NOT NULL"
+        )
+        total_rows = self._scalar("SELECT COUNT(*) FROM users")
+        total_runs = self._scalar("SELECT COUNT(*) FROM activities") or 0
+        total_distance_m = self._scalar("SELECT COALESCE(SUM(distance_m), 0) FROM activities") or 0
+        total_elev_m = self._scalar("SELECT COALESCE(SUM(elevation_gain_m), 0) FROM activities") or 0
+        accounts_with_data = self._scalar(
+            "SELECT COUNT(DISTINCT a.user_id) FROM activities a "
+            "JOIN users u ON u.id = a.user_id WHERE u.email IS NOT NULL"
+        )
+        strava_connected = self._scalar(
+            "SELECT COUNT(*) FROM users "
+            "WHERE email IS NOT NULL AND strava_refresh_token IS NOT NULL"
+        )
+        chat_messages = self._scalar("SELECT COUNT(*) FROM chat_messages") or 0
+        chat_users = self._scalar("SELECT COUNT(DISTINCT user_id) FROM chat_messages") or 0
+        goals_set = self._scalar("SELECT COUNT(DISTINCT user_id) FROM goals") or 0
+        reset_requests = self._scalar("SELECT COUNT(*) FROM password_resets") or 0
+
+        return {
+            "total_accounts": total_accounts,
+            "anonymous_sessions": max(total_rows - total_accounts, 0),
+            "signups_24h": signups_since(1),
+            "signups_7d": signups_since(7),
+            "signups_30d": signups_since(30),
+            "accounts_with_data": accounts_with_data,
+            "activation_rate": (
+                round(100 * accounts_with_data / total_accounts) if total_accounts else 0
+            ),
+            "strava_connected": strava_connected,
+            "total_runs": total_runs,
+            "total_distance_km": round(total_distance_m / 1000.0, 1),
+            "total_elevation_m": int(total_elev_m),
+            "chat_messages": chat_messages,
+            "chat_users": chat_users,
+            "goals_set": goals_set,
+            "reset_requests": reset_requests,
+            "avg_runs_per_active": (
+                round(total_runs / accounts_with_data, 1) if accounts_with_data else 0
+            ),
+        }
+
+    def signup_series(self, days: int = 30) -> list[tuple[str, int]]:
+        """Daily signup counts for the last ``days`` days (zero-filled)."""
+        cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days - 1)).date()
+        rows = self.conn.execute(
+            "SELECT created_at FROM users WHERE email IS NOT NULL AND created_at >= ?",
+            (cutoff_date.isoformat(),),
+        ).fetchall()
+        counts: dict[str, int] = {}
+        for r in rows:
+            raw = r["created_at"] or ""
+            day = raw[:10]
+            if day:
+                counts[day] = counts.get(day, 0) + 1
+        series = []
+        for i in range(days):
+            d = (cutoff_date + timedelta(days=i)).isoformat()
+            series.append((d, counts.get(d, 0)))
+        return series
+
+    def source_breakdown(self) -> list[tuple[str, int, float]]:
+        """(source, run count, total km) for every activity source."""
+        rows = self.conn.execute(
+            "SELECT COALESCE(source, 'manual') AS s, COUNT(*) AS c, "
+            "COALESCE(SUM(distance_m), 0) AS d FROM activities GROUP BY s ORDER BY c DESC"
+        ).fetchall()
+        return [(r["s"], r["c"], round(r["d"] / 1000.0, 1)) for r in rows]
+
+    def theme_breakdown(self) -> list[tuple[str, int]]:
+        rows = self.conn.execute(
+            "SELECT COALESCE(NULLIF(TRIM(theme), ''), 'emerald') AS t, COUNT(*) AS c "
+            "FROM users WHERE email IS NOT NULL GROUP BY t ORDER BY c DESC"
+        ).fetchall()
+        return [(r["t"], r["c"]) for r in rows]
+
+    def top_locations(self, limit: int = 8) -> list[tuple[str, int]]:
+        rows = self.conn.execute(
+            "SELECT COALESCE(NULLIF(TRIM(state), ''), 'Not set') AS st, COUNT(*) AS c "
+            "FROM users WHERE email IS NOT NULL GROUP BY st ORDER BY c DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [(r["st"], r["c"]) for r in rows]
+
+    def recent_signups(self, limit: int = 25) -> list[dict]:
+        rows = self.conn.execute(
+            """
+            SELECT u.id, u.email, u.account_name, u.city, u.state, u.created_at,
+                   (u.strava_refresh_token IS NOT NULL) AS strava,
+                   (SELECT COUNT(*) FROM activities a WHERE a.user_id = u.id) AS runs
+            FROM users u
+            WHERE u.email IS NOT NULL
+            ORDER BY u.created_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+        out = []
+        for r in rows:
+            out.append({
+                "id": r["id"],
+                "email": r["email"],
+                "name": r["account_name"] or (r["email"].split("@")[0] if r["email"] else "—"),
+                "location": ", ".join(b for b in ((r["city"] or "").strip(),
+                                                  (r["state"] or "").strip()) if b) or "—",
+                "created_at": r["created_at"] or "",
+                "strava": bool(r["strava"]),
+                "runs": r["runs"],
+            })
+        return out
 
     def close(self) -> None:
         self.conn.close()
