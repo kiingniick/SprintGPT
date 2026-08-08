@@ -125,13 +125,20 @@ Install steps:
 </details>
 
 <details>
-<summary><b>🍎 iPhone / iPad — install as a web app</b></summary>
+<summary><b>🍎 iPhone / iPad — install as a web app (or TestFlight)</b></summary>
 
-There's no App Store build yet, but SprintGPT is an installable Progressive Web App:
+**Easiest (free, no App Store):** SprintGPT is an installable Progressive Web App with a
+real app icon:
 
-1. Make sure a SprintGPT server is reachable — run one yourself (see Windows/macOS/Linux below) or use your hosted URL — and open it in **Safari**.
-2. Tap the **Share** button, then **Add to Home Screen**.
-3. Launch it from the new icon; it opens full-screen with an app-style tab bar.
+1. Open the [live app](https://kiingniick.github.io/SprintGPT/) in **Safari** (iOS only allows
+   Home-Screen install from Safari, not Chrome).
+2. Tap the **Share** button, then **Add to Home Screen → Add**.
+3. Launch it from the new icon; it opens full-screen like a native app.
+
+**Want it on TestFlight / the App Store?** There's a ready-to-go native
+(Capacitor/WKWebView) build and a cloud build pipeline — see
+**[`ios/README.md`](ios/README.md)**. Note: TestFlight requires the paid Apple
+Developer Program ($99/yr); the PWA above needs none of that.
 </details>
 
 <details>

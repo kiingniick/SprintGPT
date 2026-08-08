@@ -1,0 +1,15 @@
+{
+  "appId": "com.sprintgpt.app",
+  "appName": "SprintGPT",
+  "webDir": "www",
+  "backgroundColor": "#0b0f17",
+  "server": {
+    "url": "https://kiingniick.github.io/SprintGPT/",
+    "cleartext": false,
+    "iosScheme": "https"
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#0b0f17"
+  }
+}

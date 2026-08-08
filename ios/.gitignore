@@ -1,0 +1,21 @@
+# Capacitor generates the native Xcode project on demand (npx cap add ios).
+# We don't commit it — CI/your Mac regenerates it from capacitor.config.json.
+/App/
+ios/App/
+
+# Node
+node_modules/
+package-lock.json
+
+# Xcode / CocoaPods build output
+Pods/
+DerivedData/
+build/
+*.xcarchive
+*.ipa
+*.mobileprovision
+*.p12
+*.cer
+
+# macOS
+.DS_Store
