@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Reset password - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div class="brand-mark hero-mark">S</div>
+    <h1>Forgot your password?</h1>
+    <p class="auth-sub">Enter your account email and we'll send you a link to set a new one.</p>
+
+    <form class="form-grid" method="post" action="{{ url_for('forgot_password') }}">
+      <div>
+        <label>Email</label>
+        <input name="email" type="email" placeholder="you@example.com" autocomplete="email" required autofocus>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">Send reset link</button>
+    </form>
+
+    <p class="auth-alt">Remembered it? <a href="{{ url_for('login') }}">Back to log in</a></p>
+  </div>
+</div>
+{% endblock %}

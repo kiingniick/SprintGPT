@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Training Plan - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>{{ goal.race_name }}</h1>
+  <p>
+    {{ "%.1f"|format(goal.distance_m / 1000) }} km on {{ goal.race_date.strftime("%A, %b %d, %Y") }}
+    &middot; {{ plans|length }}-week plan
+    &middot; starting volume ~{{ "%.0f"|format(start_volume) }} km/wk
+    &middot; VDOT {{ fitness.recent_vdot or fitness.best_vdot or "n/a" }}
+  </p>
+</div>
+
+<div class="card" style="margin-bottom:18px; border-color: rgba(250,204,21,0.4)">
+  <strong>{{ race_note }}</strong>
+</div>
+
+{% for plan in plans %}
+<div class="card week-card">
+  <div class="week-head">
+    <div>
+      <span class="phase-tag phase-{{ plan.phase }}">{{ plan.phase|upper }}</span>
+      <strong style="margin-left:10px">Week {{ plan.week_index + 1 }}</strong>
+      <span style="color:var(--muted); margin-left:8px">{{ plan.start_day.strftime("%b %d") }}</span>
+    </div>
+    <span class="km">~{{ "%.0f"|format(plan.total_distance_m / 1000) }} km</span>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:48px">Day</th><th style="width:110px">Type</th><th class="num" style="width:70px">km</th><th>Session</th><th class="num" style="width:100px">Target pace</th></tr>
+    </thead>
+    <tbody>
+      {% for w in plan.workouts %}
+      <tr>
+        <td>{{ day_names[w.day.weekday()] }}</td>
+        <td><span class="kind kind-{{ w.kind }}">{{ w.kind }}</span></td>
+        <td class="num">{{ "%.1f"|format(w.distance_m / 1000) if w.distance_m else "-" }}</td>
+        <td>{{ w.description }}</td>
+        <td class="num">{{ w.target_pace_s_per_km | pace }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endfor %}
+
+<div class="btn-row">
+  <a class="btn" href="{{ url_for('dashboard') }}">&larr; Back to dashboard</a>
+</div>
+{% endblock %}

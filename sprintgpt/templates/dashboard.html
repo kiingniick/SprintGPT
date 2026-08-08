@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+  <div>
+    <h1>{% if account %}Hi, {{ account.name }}{% else %}Dashboard{% endif %}</h1>
+    <p>Track your progress, heart-rate training balance, and race readiness.</p>
+  </div>
+  {% if strava_connected %}
+  <span class="conn-pill">Strava connected{{ " &middot; " ~ strava_name if strava_name }}</span>
+  {% endif %}
+</div>
+
+{% if not has_data %}
+<!-- Onboarding hero -->
+<div class="card hero">
+  <div class="brand-mark hero-mark">S</div>
+  <h2>Welcome to SprintGPT</h2>
+  <p>Your AI running coach. Bring in your Strava history to instantly analyze your training,
+     heart‑rate zones, and get a personalized race plan.</p>
+</div>
+
+<!-- First-run setup: get your data in -->
+<div class="card onboard-primary">
+  <span class="step-pill">Step 1</span>
+  <h2>Import your Strava history</h2>
+  <p>No Strava subscription or developer setup required — just upload the data export
+     Strava gives every athlete for free.</p>
+
+  <form class="onboard-upload" method="post" action="{{ url_for('import_strava_export_route') }}" enctype="multipart/form-data">
+    <input name="archive" type="file" accept=".zip,.csv" required>
+    <button class="btn btn-strava btn-lg" type="submit">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.4 21 12 14.5 8.6 21 3.5 11.2h3.1L8.6 15l2.2-4.3H8.6L12 3l7.4 14.5h-2.9L14.4 13l-1.1 2.1L15.4 21z"/></svg>
+      Import my runs
+    </button>
+  </form>
+
+  <details class="how-to">
+    <summary>How do I get my Strava export? (2 min)</summary>
+    <ol>
+      <li>On <a href="https://www.strava.com/athlete/delete_your_account" target="_blank" rel="noopener">strava.com</a>,
+        go to <strong>Settings → My Account → Download or Delete Your Account</strong>.</li>
+      <li>Under <em>Download Request</em>, click <strong>Request Your Archive</strong>.</li>
+      <li>Strava emails you a download link (usually within a few hours).</li>
+      <li>Download the <code>.zip</code> and upload it right here — we only read
+        <code>activities.csv</code> and keep your runs private to your account.</li>
+    </ol>
+  </details>
+</div>
+
+<!-- Other ways to start -->
+<div class="grid grid-3" style="margin-top:18px">
+  {% if strava_configured %}
+  <div class="card onboard-alt">
+    <h2>Auto-connect Strava</h2>
+    <p class="hint">Prefer live sync? Link your account to import automatically and keep runs up to date.</p>
+    <a class="btn btn-strava btn-block" href="{{ url_for('strava_connect') }}">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M15.4 21 12 14.5 8.6 21 3.5 11.2h3.1L8.6 15l2.2-4.3H8.6L12 3l7.4 14.5h-2.9L14.4 13l-1.1 2.1L15.4 21z"/></svg>
+      Connect with Strava
+    </a>
+  </div>
+  {% endif %}
+  <div class="card onboard-alt">
+    <h2>Add runs by hand</h2>
+    <p class="hint">No Strava? Log runs manually or import a CSV below.</p>
+    <a class="btn btn-block" href="#add-run">Add a run manually</a>
+  </div>
+  <div class="card onboard-alt">
+    <h2>Import a CSV</h2>
+    <p class="hint">Already have your runs in a spreadsheet? Import them in the tools below.</p>
+    <a class="btn btn-block" href="#manage">Go to import</a>
+  </div>
+</div>
+{% else %}
+
+<!-- Stat tiles -->
+<div class="grid grid-4">
+  <div class="card stat">
+    <div class="value">{{ run_count }}</div>
+    <div class="label">Total runs</div>
+  </div>
+  <div class="card stat">
+    <div class="value">{{ total_km }} <span style="font-size:1rem">km</span></div>
+    <div class="label">Total distance</div>
+  </div>
+  <div class="card stat">
+    <div class="value">{{ total_elevation }} <span style="font-size:1rem">m</span></div>
+    <div class="label">Total elevation gain</div>
+  </div>
+  <div class="card stat">
+    <div class="value">{{ fitness.weekly_km }} <span style="font-size:1rem">km</span></div>
+    <div class="label">Last 7 days</div>
+  </div>
+</div>
+
+<div class="grid grid-4" style="margin-top:18px">
+  <div class="card stat">
+    <div class="value">{{ fitness.recent_vdot or fitness.best_vdot }}</div>
+    <div class="label">VDOT fitness score</div>
+  </div>
+  <div class="card stat">
+    <div class="value">{{ fitness.ctl }}</div>
+    <div class="label">Fitness (CTL)</div>
+  </div>
+  <div class="card stat">
+    <div class="value">{{ fitness.atl }}</div>
+    <div class="label">Fatigue (ATL)</div>
+  </div>
+  <div class="card stat">
+    <div class="value">{{ fitness.tsb }}
+      <span class="badge {{ form_label|lower }}" style="font-size:0.7rem; vertical-align:middle">{{ form_label }}</span>
+    </div>
+    <div class="label">Form (TSB)</div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="grid grid-2" style="margin-top:18px">
+  <div class="card">
+    <h2>Weekly Volume <span class="sub">last 12 weeks</span></h2>
+    <div class="chart-wrap"><canvas id="volChart"></canvas></div>
+  </div>
+  <div class="card">
+    <h2>Heart-Rate Zones <span class="sub">{{ zone_total_min }} min tracked</span></h2>
+    {% if zone_total_min > 0 %}
+    <div class="zone-layout">
+      <div class="chart-wrap" style="height:180px"><canvas id="zoneChart"></canvas></div>
+      <div class="zone-legend">
+        {% for z in hr_bounds %}
+        <div class="zone-item">
+          <span class="zone-dot" style="background: {{ zone_colors[loop.index0] }}"></span>
+          <span>{{ z.key }} {{ z.name }} <span class="rng">{{ z.low_bpm }}-{{ z.high_bpm }} bpm</span></span>
+          <span class="min">{{ zones[loop.index0].minutes }} min</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <p class="hint">No heart-rate data yet. Add runs with an average HR (or set your
+      max/resting HR in Settings) to see your training balance across zones.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Paces + predictions -->
+<div class="grid grid-2" style="margin-top:18px">
+  <div class="card">
+    <h2>Your Training Paces</h2>
+    {% for zone, val in paces.items() %}
+    <div class="pace-row"><span class="zone">{{ zone }}</span><span class="val">{{ val }}</span></div>
+    {% endfor %}
+  </div>
+  <div class="card">
+    <h2>Race Predictions
+      <span class="sub">{{ "ML model" if pred_trained else "physiology model" }}</span></h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Distance</th><th class="num">Time</th><th class="num">Pace</th><th class="num">Method</th></tr></thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr>
+          <td>{{ p.label }}</td>
+          <td class="num">{{ p.time }}</td>
+          <td class="num">{{ p.pace }}</td>
+          <td class="num" style="color:var(--muted)">{{ p.method }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- Recent runs -->
+<div class="card" style="margin-top:18px">
+  <h2>Recent Runs <span class="sub">tap a run for splits &amp; HR-zone breakdown</span></h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Date</th><th>Name</th><th class="num">Distance</th><th class="num">Time</th><th class="num">Pace</th><th class="num">Elev</th><th class="num">Avg HR</th><th class="num">Zone</th></tr></thead>
+    <tbody>
+      {% for r in recent %}
+      {% set a = r.a %}
+      <tr class="clickable" onclick="window.location='{{ url_for('activity', activity_id=a.id) }}'">
+        <td>{{ a.start_date.strftime("%b %d") }}</td>
+        <td><a class="plain" href="{{ url_for('activity', activity_id=a.id) }}">{{ a.name }}</a></td>
+        <td class="num">{{ "%.2f"|format(a.distance_km) }} km</td>
+        <td class="num">{{ a.moving_time_s | clock }}</td>
+        <td class="num">{{ a.pace_s_per_km | pace }}</td>
+        <td class="num">{{ (a.elevation_gain_m | round | int) ~ " m" if a.elevation_gain_m else "-" }}</td>
+        <td class="num">{{ (a.average_hr | round | int) ~ " bpm" if a.average_hr else "-" }}</td>
+        <td class="num">{% if r.zone_key %}<span class="zbadge z{{ r.zone_index }}">{{ r.zone_key }}</span>{% else %}-{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Tools -->
+<h2 style="margin:34px 0 14px; font-size:1.2rem" id="manage">Manage your data</h2>
+<div class="grid grid-3">
+  <!-- Add run -->
+  <div class="card" id="add-run">
+    <h2>Add a Run</h2>
+    <form class="form-grid" method="post" action="{{ url_for('add_run') }}">
+      <div class="row-2">
+        <div><label>Distance</label><input name="distance" placeholder="10k, 5000m, 8.5km" required></div>
+        <div><label>Time</label><input name="time" placeholder="45:30" required></div>
+      </div>
+      <div class="row-2">
+        <div><label>Date</label><input name="date" type="date"></div>
+        <div><label>Avg HR (bpm)</label><input name="hr" type="number" placeholder="optional"></div>
+      </div>
+      <div class="row-2">
+        <div><label>Elevation gain (m)</label><input name="elevation" type="number" step="any" placeholder="optional"></div>
+        <div><label>Name</label><input name="name" placeholder="Tempo run"></div>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Add run</button>
+    </form>
+  </div>
+
+  <!-- Import Strava export -->
+  <div class="card">
+    <h2>Import Strava export</h2>
+    <form class="form-grid" method="post" action="{{ url_for('import_strava_export_route') }}" enctype="multipart/form-data">
+      <div><label>Strava archive</label><input name="archive" type="file" accept=".zip,.csv" required></div>
+      <p class="hint">Upload the <code>.zip</code> Strava emails you (Settings &rarr; Download
+        Your Archive). No API or subscription needed.</p>
+      <button class="btn btn-block" type="submit">Upload &amp; import</button>
+    </form>
+  </div>
+
+  <!-- Import race results by name -->
+  <div class="card">
+    <h2>Import race results</h2>
+    <p class="hint">Pull your official cross country &amp; track times from the results
+      databases using just your name &mdash; no files or logins needed.</p>
+    <a class="btn btn-primary btn-block" href="{{ url_for('meets') }}">Find my races</a>
+  </div>
+
+  <!-- Import CSV -->
+  <div class="card">
+    <h2>Import CSV</h2>
+    <form class="form-grid" method="post" action="{{ url_for('import_runs') }}" enctype="multipart/form-data">
+      <div><label>CSV file</label><input name="csv" type="file" accept=".csv" required></div>
+      <p class="hint">Headers: <code>date, distance, duration</code> and optional
+        <code>name, elevation, hr</code>.</p>
+      <button class="btn btn-block" type="submit">Upload &amp; import</button>
+    </form>
+  </div>
+
+  <!-- Strava -->
+  <div class="card">
+    <h2>Strava</h2>
+    {% if not strava_configured %}
+      <p class="hint">This instance isn't set up for Strava yet. The app owner needs to add
+        <code>STRAVA_CLIENT_ID</code> and <code>STRAVA_CLIENT_SECRET</code> to <code>.env</code>.</p>
+    {% elif not strava_connected %}
+      <p class="hint">Link your Strava account to import your runs automatically and keep
+        them in sync.</p>
+      <a class="btn btn-strava btn-block" href="{{ url_for('strava_connect') }}">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M15.4 21 12 14.5 8.6 21 3.5 11.2h3.1L8.6 15l2.2-4.3H8.6L12 3l7.4 14.5h-2.9L14.4 13l-1.1 2.1L15.4 21z"/></svg>
+        Connect with Strava
+      </a>
+    {% else %}
+      <p class="hint">Connected{{ " as " ~ strava_name if strava_name }}. Pull in your latest runs any time.</p>
+      <form method="post" action="{{ url_for('strava_sync') }}" style="margin-bottom:10px">
+        <button class="btn btn-strava btn-block" type="submit">Sync latest runs</button>
+      </form>
+      <form method="post" action="{{ url_for('strava_disconnect') }}"
+            onsubmit="return confirm('Disconnect Strava? Your synced runs will be kept.')">
+        <button class="btn btn-block" type="submit">Disconnect</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:18px">
+  <!-- Goal -->
+  <div class="card">
+    <h2>Goal Race {% if goal %}<span class="sub">current: {{ goal.race_name }}</span>{% endif %}</h2>
+    <form class="form-grid" method="post" action="{{ url_for('set_goal') }}">
+      <div class="row-2">
+        <div><label>Distance</label>
+          <select name="distance">
+            <option value="5k">5K</option>
+            <option value="10k">10K</option>
+            <option value="half" selected>Half marathon</option>
+            <option value="marathon">Marathon</option>
+          </select>
+        </div>
+        <div><label>Race date</label><input name="date" type="date" required></div>
+      </div>
+      <div class="row-2">
+        <div><label>Race name</label><input name="name" placeholder="City Half"></div>
+        <div><label>Target time</label><input name="target" placeholder="1:45:00"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" type="submit">Save goal</button>
+        <a class="btn" href="{{ url_for('plan') }}">Generate plan &rarr;</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Settings / HR profile -->
+  <div class="card">
+    <h2>Heart-Rate Profile</h2>
+    <form class="form-grid" method="post" action="{{ url_for('settings') }}">
+      <div class="row-2">
+        <div><label>Max HR (bpm)</label><input name="max_hr" type="number" value="{{ profile.max_hr }}"></div>
+        <div><label>Resting HR (bpm)</label><input name="resting_hr" type="number" value="{{ profile.resting_hr or '' }}" placeholder="optional"></div>
+      </div>
+      <div class="row-2">
+        <div><label>Or estimate from age</label><input name="age" type="number" placeholder="e.g. 30"></div>
+        <div><label>Sex (TRIMP coef.)</label>
+          <select name="sex">
+            <option value="m" {{ 'selected' if profile.sex == 'm' }}>Male</option>
+            <option value="f" {{ 'selected' if profile.sex == 'f' }}>Female</option>
+          </select>
+        </div>
+      </div>
+      <p class="hint">Resting HR enables heart-rate-reserve (Karvonen) zones and
+        TRIMP training load. Leave max HR blank when using age.</p>
+      <button class="btn btn-primary btn-block" type="submit">Save profile</button>
+    </form>
+  </div>
+</div>
+
+<!-- Appearance / color theme -->
+<h2 style="margin:34px 0 14px; font-size:1.2rem" id="appearance">Appearance</h2>
+<div class="card">
+  <h2>Color theme <span class="sub">applied everywhere and saved to your account</span></h2>
+  <form method="post" action="{{ url_for('appearance') }}">
+    <div class="theme-grid">
+      {% for t in themes %}
+      <label class="theme-swatch {{ 'selected' if current_theme == t.key }}">
+        <input type="radio" name="theme" value="{{ t.key }}" {{ 'checked' if current_theme == t.key }}>
+        <span class="swatch-colors">
+          <span style="background: {{ t.accent }}"></span>
+          <span style="background: {{ t.accent2 }}"></span>
+          <span class="swatch-bg" style="background: {{ t.bg }}"></span>
+        </span>
+        <span class="swatch-name">{{ t.name }}</span>
+      </label>
+      {% endfor %}
+      <label class="theme-swatch {{ 'selected' if current_theme == 'custom' }}">
+        <input type="radio" name="theme" value="custom" {{ 'checked' if current_theme == 'custom' }}>
+        <span class="swatch-colors">
+          <span id="cpreview1" style="background: {{ custom_accent }}"></span>
+          <span id="cpreview2" style="background: {{ custom_accent2 }}"></span>
+          <span class="swatch-bg" style="background: var(--bg)"></span>
+        </span>
+        <span class="swatch-name">Custom</span>
+      </label>
+    </div>
+
+    <div class="custom-colors">
+      <div>
+        <label>Primary accent</label>
+        <input type="color" name="accent" value="{{ custom_accent }}"
+               oninput="document.getElementById('cpreview1').style.background=this.value">
+      </div>
+      <div>
+        <label>Secondary accent</label>
+        <input type="color" name="accent2" value="{{ custom_accent2 }}"
+               oninput="document.getElementById('cpreview2').style.background=this.value">
+      </div>
+      <p class="hint">Pick two colors to build your own theme, then choose <strong>Custom</strong> above and save.</p>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Save theme</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% if has_data %}
+<script>
+  const css = getComputedStyle(document.documentElement);
+  const cMuted = css.getPropertyValue("--muted").trim() || "#93a0b8";
+  const cBorder = css.getPropertyValue("--border").trim() || "#26314a";
+  const cAccent = css.getPropertyValue("--accent").trim() || "#4ade80";
+  Chart.defaults.color = cMuted;
+  Chart.defaults.font.family = "Inter, sans-serif";
+
+  new Chart(document.getElementById("volChart"), {
+    type: "bar",
+    data: {
+      labels: {{ vol_labels | tojson }},
+      datasets: [{
+        label: "km",
+        data: {{ vol_values | tojson }},
+        backgroundColor: cAccent,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: cBorder } }
+      }
+    }
+  });
+
+  {% if zone_total_min > 0 %}
+  new Chart(document.getElementById("zoneChart"), {
+    type: "doughnut",
+    data: {
+      labels: {{ zone_labels | tojson }},
+      datasets: [{
+        data: {{ zone_minutes | tojson }},
+        backgroundColor: {{ zone_colors | tojson }},
+        borderColor: "#161d2b",
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      cutout: "62%",
+      plugins: { legend: { display: false } }
+    }
+  });
+  {% endif %}
+</script>
+{% endif %}
+{% endblock %}

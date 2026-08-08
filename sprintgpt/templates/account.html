@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Account Settings - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Account settings</h1>
+  <p>Manage your profile, home location, and password.</p>
+</div>
+
+<div class="settings-grid">
+  <!-- Profile + location -->
+  <div class="card">
+    <h2>Profile</h2>
+    <form class="form-grid" method="post" action="{{ url_for('account_update') }}">
+      <div>
+        <label>Display name</label>
+        <input name="name" value="{{ user['account_name'] or '' }}" placeholder="Your name" maxlength="80">
+      </div>
+      <div>
+        <label>Email</label>
+        <input value="{{ user['email'] or '' }}" disabled>
+        <p class="hint">Your email is used to sign in and can't be changed here.</p>
+      </div>
+      <div class="loc-row">
+        <div>
+          <label>City</label>
+          <input name="city" value="{{ user['city'] or '' }}" placeholder="e.g. Portland" maxlength="80">
+        </div>
+        <div>
+          <label>State / Province</label>
+          <input name="state" value="{{ user['state'] or '' }}" placeholder="e.g. OR or Oregon" maxlength="40">
+        </div>
+      </div>
+      <p class="hint">Your home city and state help us match <strong>the right you</strong>
+        when importing race results by name &mdash; athletes from your area are shown first.</p>
+      <button class="btn btn-primary btn-block" type="submit">Save changes</button>
+    </form>
+  </div>
+
+  <!-- Change password -->
+  <div class="card">
+    <h2>Change password</h2>
+    <form class="form-grid" method="post" action="{{ url_for('account_password') }}">
+      <div>
+        <label>Current password</label>
+        <input name="current_password" type="password" autocomplete="current-password" required>
+      </div>
+      <div>
+        <label>New password</label>
+        <input name="new_password" type="password" autocomplete="new-password" required>
+      </div>
+      <div>
+        <label>Confirm new password</label>
+        <input name="confirm_password" type="password" autocomplete="new-password" required>
+      </div>
+      <p class="hint">Use at least 6 characters.</p>
+      <button class="btn btn-block" type="submit">Update password</button>
+    </form>
+  </div>
+</div>
+
+<div class="card account-signout">
+  <div>
+    <strong>Signed in as {{ user['email'] }}</strong>
+    <p class="hint">Done for now? You can log out safely &mdash; your data stays on your account.</p>
+  </div>
+  <a class="btn" href="{{ url_for('logout') }}">Log out</a>
+</div>
+{% endblock %}

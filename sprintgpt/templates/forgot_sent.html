@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Check your email - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div class="brand-mark hero-mark">S</div>
+    <h1>Check your email</h1>
+    <p class="auth-sub">If an account exists for
+      {% if email %}<strong>{{ email }}</strong>{% else %}that address{% endif %},
+      we've sent a link to reset your password. It expires in 1 hour.</p>
+
+    {% if dev_link %}
+      <div class="reset-devlink">
+        <p><strong>Email isn't set up on this server</strong>, so here's your reset
+          link directly:</p>
+        <a class="btn btn-primary btn-block" href="{{ dev_link }}">Set a new password</a>
+        <p class="hint">To send these by email instead, configure <code>SMTP_*</code>
+          settings in <code>.env</code>.</p>
+      </div>
+    {% endif %}
+
+    <p class="auth-alt">Back to <a href="{{ url_for('login') }}">log in</a></p>
+  </div>
+</div>
+{% endblock %}

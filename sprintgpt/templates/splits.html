@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Splits Calculator - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Splits Calculator</h1>
+  <p>Enter one total time for a distance and get exact even per-mile (or per-km) splits.</p>
+</div>
+
+<div class="card" style="margin-bottom:18px">
+  <form method="get" action="{{ url_for('splits') }}">
+    <div class="splits-form-grid">
+      <div>
+        <label>Distance</label>
+        <input name="distance" value="{{ distance_raw }}" placeholder="marathon, 10k, 13.1mi" required>
+      </div>
+      <div>
+        <label>Total time</label>
+        <input name="time" value="{{ time_raw }}" placeholder="3:30:00 or 45:30" required>
+      </div>
+      <div>
+        <label>Split unit</label>
+        <select name="unit">
+          <option value="mi" {{ 'selected' if unit == 'mi' }}>Per mile</option>
+          <option value="km" {{ 'selected' if unit == 'km' }}>Per km</option>
+        </select>
+      </div>
+      <div><button class="btn btn-primary btn-block" type="submit">Calculate</button></div>
+    </div>
+  </form>
+</div>
+
+{% if error %}
+<div class="flash flash-error">Could not calculate: {{ error }}</div>
+{% endif %}
+
+{% if result %}
+<div class="grid grid-4" style="margin-bottom:18px">
+  <div class="card stat"><div class="value small">{{ result.total_time }}</div><div class="label">Total time</div></div>
+  <div class="card stat"><div class="value small">{{ result.distance_mi }} mi</div><div class="label">{{ result.distance_km }} km</div></div>
+  <div class="card stat"><div class="value small">{{ result.avg_pace_mi }}</div><div class="label">Average pace / mile</div></div>
+  <div class="card stat"><div class="value small">{{ result.avg_pace_km }}</div><div class="label">Average pace / km</div></div>
+</div>
+
+<div class="card">
+  <h2>Per-{{ result.unit_label }} splits</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>{{ result.unit_label|capitalize }}</th>
+        <th class="num">Split</th>
+        <th class="num">Pace</th>
+        <th class="num">Cumulative</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in result.splits %}
+      <tr>
+        <td>{{ s.label }}{% if s.partial %} <span style="color:var(--muted)">(partial)</span>{% endif %}</td>
+        <td class="num">{{ s.split }}</td>
+        <td class="num">{{ s.pace }}</td>
+        <td class="num">{{ s.cumulative }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

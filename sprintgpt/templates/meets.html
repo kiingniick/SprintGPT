@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Import Race Results - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Import race results</h1>
+  <p>Search your name on the results databases and pull your official cross country
+     and track times straight into your log &mdash; no files, no accounts to link.</p>
+</div>
+
+<div class="card" style="margin-bottom:18px">
+  <form method="get" action="{{ url_for('meets') }}" class="meet-search">
+    <input name="q" value="{{ q }}" placeholder="Search your full name, e.g. Jordan Rivera"
+           autocomplete="off" autofocus>
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
+  <p class="hint">We currently search <strong>Athletic.net</strong> (US high-school,
+    college &amp; club cross country and track). Pick your profile below &mdash; we'll
+    import every distance race (800&nbsp;m and up, plus all XC).</p>
+</div>
+
+{% if home_city or home_state %}
+  <p class="meet-loc-note">Showing athletes near
+    <strong>{{ [home_city, home_state]|select|join(', ') }}</strong> first.
+    <a href="{{ url_for('account_settings') }}">Change your location</a></p>
+{% else %}
+  <p class="meet-loc-note">Tip: add your city and state in
+    <a href="{{ url_for('account_settings') }}">account settings</a>
+    to surface the right match faster.</p>
+{% endif %}
+
+{% if error %}
+  <div class="card meet-empty">
+    <p><strong>Couldn't complete that search.</strong></p>
+    <p class="hint">{{ error }}</p>
+  </div>
+{% elif searched and not matches %}
+  <div class="card meet-empty">
+    <p><strong>No athletes matched &ldquo;{{ q }}&rdquo;.</strong></p>
+    <p class="hint">Try your full name as it appears on race results, or a different
+      spelling. Common names may need a middle name to narrow things down.</p>
+  </div>
+{% elif matches %}
+  <p class="meet-count">{{ matches|length }} match{{ 'es' if matches|length != 1 else '' }} found &mdash; choose the one that's you:</p>
+  <div class="meet-list">
+    {% for m in matches %}
+    <div class="meet-athlete {{ 'is-local' if m.local }}">
+      <div class="meet-athlete-info">
+        <span class="meet-avatar {{ 'is-f' if m.gender == 'F' else 'is-m' if m.gender == 'M' }}">
+          {{ m.name[0]|upper }}
+        </span>
+        <div>
+          <div class="meet-name">{{ m.name }}{% if m.local %}<span class="meet-badge">Your area</span>{% endif %}</div>
+          <div class="meet-detail">
+            {% if m.detail %}{{ m.detail }}{% else %}<span class="hint">No school listed</span>{% endif %}
+          </div>
+          <div class="meet-src">{{ m.source }}</div>
+        </div>
+      </div>
+      <form method="post" action="{{ url_for('meets_import') }}">
+        <input type="hidden" name="ref" value="{{ m.ref }}">
+        <input type="hidden" name="athlete_name" value="{{ m.name }}">
+        <button class="btn btn-primary" type="submit">Import my races</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card meet-empty">
+    <p><strong>How it works</strong></p>
+    <ol class="meet-steps">
+      <li>Type your name and hit search.</li>
+      <li>Pick your profile from the matches (use your school/city to spot yourself).</li>
+      <li>We import your races as activities &mdash; instantly folded into your fitness,
+          predictions, and coach chat.</li>
+    </ol>
+    <p class="hint">Re-importing is safe: races you already have are skipped automatically.</p>
+  </div>
+{% endif %}
+{% endblock %}

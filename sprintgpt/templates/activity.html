@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{{ act.name }} - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>{{ act.name }}</h1>
+  <p>{{ act.start_date.strftime("%A, %b %d, %Y") }} &middot; {{ act.source }}</p>
+</div>
+
+<div class="grid grid-4">
+  <div class="card stat"><div class="value small">{{ "%.2f"|format(act.distance_km) }} km</div><div class="label">Distance</div></div>
+  <div class="card stat"><div class="value small">{{ duration }}</div><div class="label">Time</div></div>
+  <div class="card stat"><div class="value small">{{ pace }}</div><div class="label">Pace</div></div>
+  <div class="card stat"><div class="value small">{{ (act.elevation_gain_m | round | int) if act.elevation_gain_m else 0 }} m</div><div class="label">Elevation gain</div></div>
+</div>
+
+{% if act.average_hr %}
+<div class="card" style="margin-top:18px">
+  <h2>Heart-Rate Zone Breakdown
+    <span class="sub">avg {{ act.average_hr | round | int }} bpm
+      {% if current_zone %}&middot; mostly {{ current_zone.key }} {{ current_zone.name }}{% endif %}</span>
+  </h2>
+  {% if zone_total > 0 %}
+  <div class="zone-layout">
+    <div class="chart-wrap" style="height:170px"><canvas id="zoneChart"></canvas></div>
+    <div class="zone-legend">
+      {% for z in zones %}
+      {% set pct = (z.minutes / zone_total * 100) if zone_total else 0 %}
+      <div class="zone-item">
+        <span class="zone-dot" style="background: {{ zone_colors[loop.index0] }}"></span>
+        <span>{{ z.key }} {{ z.name }} <span class="rng">{{ z.low_bpm }}-{{ z.high_bpm }} bpm</span></span>
+        <span class="min">{{ z.minutes }} min ({{ "%.0f"|format(pct) }}%)</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <p class="hint" style="margin-top:12px">Zone breakdown is estimated from the run's
+    average heart rate using a distribution model (exact stream data is used when
+    available from Strava).</p>
+</div>
+{% endif %}
+
+<div class="seg" style="margin-top:18px">
+  <div class="card">
+    <h2>Per-Mile Splits</h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Mile</th><th class="num">Split</th><th class="num">Pace</th><th class="num">Cumulative</th></tr></thead>
+      <tbody>
+        {% for s in mile_splits %}
+        <tr>
+          <td>{{ s.label }}{% if s.partial %} <span style="color:var(--muted)">(partial)</span>{% endif %}</td>
+          <td class="num">{{ s.split }}</td>
+          <td class="num">{{ s.pace }}</td>
+          <td class="num">{{ s.cumulative }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Per-Kilometer Splits</h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Km</th><th class="num">Split</th><th class="num">Pace</th><th class="num">Cumulative</th></tr></thead>
+      <tbody>
+        {% for s in km_splits %}
+        <tr>
+          <td>{{ s.label }}{% if s.partial %} <span style="color:var(--muted)">(partial)</span>{% endif %}</td>
+          <td class="num">{{ s.split }}</td>
+          <td class="num">{{ s.pace }}</td>
+          <td class="num">{{ s.cumulative }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<div class="btn-row" style="margin-top:18px">
+  <a class="btn" href="{{ url_for('dashboard') }}">&larr; Back to dashboard</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if act.average_hr and zone_total > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  Chart.defaults.color = "#93a0b8";
+  Chart.defaults.font.family = "Inter, sans-serif";
+  new Chart(document.getElementById("zoneChart"), {
+    type: "doughnut",
+    data: {
+      labels: {{ zones | map(attribute='key') | list | tojson }},
+      datasets: [{
+        data: {{ zones | map(attribute='minutes') | list | tojson }},
+        backgroundColor: {{ zone_colors | tojson }},
+        borderColor: "#161d2b",
+        borderWidth: 2,
+      }]
+    },
+    options: { maintainAspectRatio: false, cutout: "60%", plugins: { legend: { display: false } } }
+  });
+</script>
+{% endif %}
+{% endblock %}

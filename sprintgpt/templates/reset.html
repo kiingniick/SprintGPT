@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Set a new password - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div class="brand-mark hero-mark">S</div>
+    <h1>Set a new password</h1>
+    <p class="auth-sub">Choose a new password. You'll be logged in right after.</p>
+
+    <form class="form-grid" method="post" action="{{ url_for('reset_password', token=token) }}">
+      <div>
+        <label>New password</label>
+        <input name="new_password" type="password" placeholder="At least 6 characters"
+               autocomplete="new-password" required autofocus>
+      </div>
+      <div>
+        <label>Confirm new password</label>
+        <input name="confirm_password" type="password" placeholder="Re-enter password"
+               autocomplete="new-password" required>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">Reset password &amp; log in</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

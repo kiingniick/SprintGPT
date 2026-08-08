@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}{{ bot_name }} - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="chat-page">
+  <div class="chat-head">
+    <div class="chat-head-id">
+      <div class="chat-avatar">{{ bot_name[0]|upper }}</div>
+      <div>
+        <h1 id="botTitle">{{ bot_name }}</h1>
+        <p class="chat-sub">Your AI coach &middot; answers from your own running data</p>
+      </div>
+    </div>
+    <div class="chat-head-actions">
+      <button class="btn btn-sm" type="button" onclick="document.getElementById('renameRow').classList.toggle('open')">Rename</button>
+      <form method="post" action="{{ url_for('chat_clear') }}"
+            onsubmit="return confirm('Clear this conversation?')">
+        <button class="btn btn-sm" type="submit">Clear</button>
+      </form>
+    </div>
+  </div>
+
+  <form id="renameRow" class="rename-row" method="post" action="{{ url_for('chat_rename') }}">
+    <input name="bot_name" value="{{ bot_name }}" maxlength="40" placeholder="Name your coach (e.g. Coach Ada)">
+    <button class="btn btn-primary btn-sm" type="submit">Save name</button>
+    <span class="hint">Cosmetic only — I'll still use all your data.</span>
+  </form>
+
+  <div class="chat-window card" id="chatWindow">
+    <div class="msg bot">
+      <div class="bubble">
+        Hi! I'm <strong>{{ bot_name }}</strong>, your running coach.
+        {% if has_data %}
+          Ask me about your mileage, fitness, paces, heart-rate zones, race predictions, or what to run today.
+        {% else %}
+          I don't see any runs yet — import your Strava history or add a run, and I'll analyze your training.
+        {% endif %}
+      </div>
+    </div>
+    {% for m in messages %}
+    <div class="msg {{ 'user' if m.role == 'user' else 'bot' }}">
+      <div class="bubble">{{ m.content }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="chat-suggestions" id="suggestions">
+    {% for s in suggestions %}
+    <button type="button" class="chip" onclick="sendMessage('{{ s|replace("'", "\\'") }}')">{{ s }}</button>
+    {% endfor %}
+  </div>
+
+  <form class="chat-input" id="chatForm" autocomplete="off">
+    <input id="chatText" name="message" placeholder="Ask your coach anything..." autocomplete="off" required>
+    <button class="btn btn-primary" type="submit" id="chatSend">Send</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const win = document.getElementById("chatWindow");
+  const form = document.getElementById("chatForm");
+  const input = document.getElementById("chatText");
+  const sendBtn = document.getElementById("chatSend");
+  const botName = {{ bot_name|tojson }};
+
+  function scrollDown() { win.scrollTop = win.scrollHeight; }
+  scrollDown();
+
+  function addMessage(text, who) {
+    const wrap = document.createElement("div");
+    wrap.className = "msg " + who;
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+    win.appendChild(wrap);
+    scrollDown();
+    return bubble;
+  }
+
+  function typingBubble() {
+    const wrap = document.createElement("div");
+    wrap.className = "msg bot";
+    wrap.innerHTML = '<div class="bubble typing"><span></span><span></span><span></span></div>';
+    win.appendChild(wrap);
+    scrollDown();
+    return wrap;
+  }
+
+  async function ask(text) {
+    addMessage(text, "user");
+    input.value = "";
+    sendBtn.disabled = true;
+    const typing = typingBubble();
+    try {
+      const res = await fetch("{{ url_for('chat_send') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await res.json();
+      typing.remove();
+      addMessage(data.reply || "Sorry, I couldn't answer that.", "bot");
+    } catch (e) {
+      typing.remove();
+      addMessage("Something went wrong reaching your coach. Please try again.", "bot");
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  function sendMessage(text) { ask(text); }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (text) ask(text);
+  });
+</script>
+{% endblock %}

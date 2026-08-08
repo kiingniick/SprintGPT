@@ -1,0 +1,20 @@
+{
+  "name": "SprintGPT - AI Running Coach",
+  "short_name": "SprintGPT",
+  "description": "Track your running progress, heart-rate zones, and splits, and get personalized AI training plans.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f17",
+  "theme_color": "#0b0f17",
+  "categories": ["health", "fitness", "sports"],
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

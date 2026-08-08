@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Create your account - SprintGPT{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div class="brand-mark hero-mark">S</div>
+    <h1>Create your free account</h1>
+    <p class="auth-sub">Save your runs, connect Strava, and get training plans built just for you.</p>
+
+    <form class="form-grid" method="post" action="{{ url_for('signup') }}">
+      <div>
+        <label>Your name</label>
+        <input name="name" placeholder="Alex Runner" autocomplete="name" required>
+      </div>
+      <div>
+        <label>Email</label>
+        <input name="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+      </div>
+      <div>
+        <label>Password</label>
+        <input name="password" type="password" placeholder="At least 6 characters"
+               autocomplete="new-password" minlength="6" required>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">Create account</button>
+    </form>
+
+    <p class="auth-alt">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+  </div>
+</div>
+{% endblock %}

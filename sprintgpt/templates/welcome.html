@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Welcome to SprintGPT{% endblock %}
+
+{% block content %}
+<section class="welcome-hero">
+  <div class="brand-mark hero-mark">S</div>
+  <h1>Welcome to SprintGPT</h1>
+  <p class="welcome-lead">
+    Your personal AI running coach — built by runners, for runners. Track every run,
+    understand your heart‑rate training, predict race times, and get a plan made
+    just for you.
+  </p>
+  <div class="welcome-cta">
+    <a class="btn btn-primary btn-lg" href="{{ url_for('signup') }}">Create free account</a>
+    <a class="btn btn-lg" href="{{ url_for('login') }}">Log in</a>
+  </div>
+</section>
+
+<h2 class="guide-title">Get started in 3 easy steps</h2>
+<div class="grid grid-3 guide-steps">
+  <div class="card guide-step">
+    <div class="guide-num">1</div>
+    <h3>Create your account</h3>
+    <p>Sign up in seconds with an email and password. Everything you add — runs,
+       Strava data, goals — stays private and linked to your account.</p>
+  </div>
+  <div class="card guide-step">
+    <div class="guide-num">2</div>
+    <h3>Bring in your runs</h3>
+    <p>Upload your free <strong>Strava data export</strong> (no subscription needed),
+       connect Strava live, import a CSV, or log runs by hand. It only takes a minute.</p>
+  </div>
+  <div class="card guide-step">
+    <div class="guide-num">3</div>
+    <h3>Train smarter</h3>
+    <p>Instantly see your fitness, heart‑rate zones, and race predictions — then set a
+       goal race and generate a personalized, periodized training plan.</p>
+  </div>
+</div>
+
+<h2 class="guide-title">What you'll get</h2>
+<div class="grid grid-3 guide-feats">
+  <div class="card guide-feat">
+    <h3>Fitness &amp; form</h3>
+    <p>Track fitness (CTL), fatigue (ATL), and form (TSB) so you know when to push and
+       when to recover.</p>
+  </div>
+  <div class="card guide-feat">
+    <h3>Heart‑rate zones</h3>
+    <p>Five‑zone breakdowns and per‑run time‑in‑zone, with TRIMP training load when HR
+       is available.</p>
+  </div>
+  <div class="card guide-feat">
+    <h3>Race predictions</h3>
+    <p>ML‑powered 5K → marathon predictions trained on your own runs, grounded by
+       proven physiology models.</p>
+  </div>
+  <div class="card guide-feat">
+    <h3>Exact splits</h3>
+    <p>Turn one goal time into precise per‑mile and per‑km splits for even, confident
+       pacing.</p>
+  </div>
+  <div class="card guide-feat">
+    <h3>Personalized plans</h3>
+    <p>Base → Build → Peak → Taper plans built around your goal race and current
+       fitness.</p>
+  </div>
+  <div class="card guide-feat">
+    <h3>Chat with your coach</h3>
+    <p>Ask a built‑in AI coach about your runs, paces, and readiness — it answers
+       from your own data. Name it whatever you like.</p>
+  </div>
+  <div class="card guide-feat">
+    <h3>Anywhere, installable</h3>
+    <p>A fast, mobile‑first web app you can add to your home screen and use like a
+       native app.</p>
+  </div>
+</div>
+
+<div class="welcome-footer-cta card">
+  <div>
+    <h2>Ready to run smarter?</h2>
+    <p>Create your free account and bring in your first runs.</p>
+  </div>
+  <div class="welcome-cta">
+    <a class="btn btn-primary btn-lg" href="{{ url_for('signup') }}">Create free account</a>
+    <a class="btn btn-lg" href="{{ url_for('login') }}">Log in</a>
+  </div>
+</div>
+{% endblock %}

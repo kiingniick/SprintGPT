@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0" />
+  <title>{% block title %}SprintGPT{% endblock %}</title>
+
+  <meta name="theme-color" content="#0b0f17" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SprintGPT" />
+  <meta name="description" content="SprintGPT - AI running coach: track progress, heart-rate zones, splits, and get personalized training plans." />
+
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}" />
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icon.svg') }}" />
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon.svg') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Account color theme: overrides the stylesheet defaults so the whole UI recolors. -->
+  <style>:root{ {{ theme_css }} }</style>
+</head>
+<body>
+  {% set ep = request.endpoint %}
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('dashboard') if account else url_for('welcome') }}">
+      <span class="brand-mark">S</span> SprintGPT
+      <span class="brand-tag">AI running coach</span>
+    </a>
+    {% if account %}
+    <nav class="desktop-nav">
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if ep == 'dashboard' }}">Dashboard</a>
+      <a href="{{ url_for('chat') }}" class="{{ 'active' if ep == 'chat' }}">Coach</a>
+      <a href="{{ url_for('meets') }}" class="{{ 'active' if ep == 'meets' }}">Meets</a>
+      <a href="{{ url_for('plan') }}" class="{{ 'active' if ep == 'plan' }}">Training Plan</a>
+      <a href="{{ url_for('splits') }}" class="{{ 'active' if ep == 'splits' }}">Splits</a>
+      <a href="{{ url_for('welcome') }}" class="{{ 'active' if ep == 'welcome' }}">Guide</a>
+    </nav>
+    {% endif %}
+    <div class="auth-area">
+      {% if account %}
+        <a class="auth-hi {{ 'active' if ep == 'account_settings' }}" href="{{ url_for('account_settings') }}">Hi, {{ account.name }}</a>
+        <a class="btn btn-sm" href="{{ url_for('logout') }}">Log out</a>
+      {% else %}
+        <a class="auth-link" href="{{ url_for('login') }}">Log in</a>
+        <a class="btn btn-sm btn-primary" href="{{ url_for('signup') }}">Sign up</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    SprintGPT is a training aid, not medical advice. Listen to your body.
+  </footer>
+
+  <!-- App-style bottom navigation (mobile only, signed-in) -->
+  {% if account %}
+  <nav class="tabbar">
+    <a href="{{ url_for('dashboard') }}" class="tab {{ 'active' if ep == 'dashboard' or ep == 'activity' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="{{ url_for('chat') }}" class="tab {{ 'active' if ep == 'chat' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Coach</span>
+    </a>
+    <a href="{{ url_for('meets') }}" class="tab {{ 'active' if ep == 'meets' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="6"/><path d="M9 14l-2 8 5-3 5 3-2-8"/></svg>
+      <span>Meets</span>
+    </a>
+    <a href="{{ url_for('plan') }}" class="tab {{ 'active' if ep == 'plan' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+      <span>Plan</span>
+    </a>
+    <a href="{{ url_for('splits') }}" class="tab {{ 'active' if ep == 'splits' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6M12 5V2"/></svg>
+      <span>Splits</span>
+    </a>
+  </nav>
+  {% endif %}
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("{{ url_for('service_worker') }}").catch(function () {});
+      });
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
