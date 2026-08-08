@@ -12,5 +12,6 @@ sprintgpt.db-wal
 sprintgpt.db-shm
 android/
 *.apk
+logs/
 _smoke_*.py
 _diag_*.py

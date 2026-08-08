@@ -1,7 +1,9 @@
 package com.sprintgpt.app;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -52,6 +54,7 @@ public class MainActivity extends Activity {
     private static final String KEY_MODE = "mode";       // "device" | "server"
     private static final String KEY_URL = "server_url";
     private static final String KEY_SKIP_VERSION = "skip_version";  // update the user dismissed
+    private static final String KEY_LAST_CRASH = "last_crash";      // crash-loop guard timestamp
     private static final String MODE_DEVICE = "device";
     private static final String MODE_SERVER = "server";
 
@@ -87,6 +90,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        installCrashRecovery();
 
         web = new WebView(this);
         web.setBackgroundColor(Color.parseColor("#0b0f17"));
@@ -167,6 +172,54 @@ public class MainActivity extends Activity {
         handler.postDelayed(new Runnable() {
             @Override public void run() { checkForUpdate(); }
         }, 4000);
+    }
+
+    // ---- crash recovery -----------------------------------------------------
+
+    /** Catch otherwise-fatal crashes and relaunch the app instead of showing the
+     *  system "app keeps stopping" dialog. A short time-window guard prevents a
+     *  boot loop: if we crash again within a few seconds, we let it stop so the
+     *  user (or the OS) can step in rather than restarting forever. */
+    private void installCrashRecovery() {
+        final Thread.UncaughtExceptionHandler previous =
+            Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable error) {
+                boolean loop = false;
+                try {
+                    error.printStackTrace();
+                    SharedPreferences p = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+                    long now = System.currentTimeMillis();
+                    loop = (now - p.getLong(KEY_LAST_CRASH, 0L)) < 5000L;
+                    p.edit().putLong(KEY_LAST_CRASH, now).apply();
+
+                    if (!loop) {
+                        Intent i = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                        if (i != null) {
+                            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            PendingIntent pi = PendingIntent.getActivity(
+                                MainActivity.this, 0, i,
+                                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+                            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                            if (am != null) {
+                                am.set(AlarmManager.RTC, System.currentTimeMillis() + 400, pi);
+                            }
+                        }
+                    }
+                } catch (Throwable ignored) {
+                    // If recovery itself fails, fall through to a clean process exit.
+                } finally {
+                    if (loop && previous != null) {
+                        // Repeated crash: hand back to the default handler for a normal report.
+                        previous.uncaughtException(thread, error);
+                    } else {
+                        android.os.Process.killProcess(android.os.Process.myPid());
+                        System.exit(10);
+                    }
+                }
+            }
+        });
     }
 
     // ---- self-update reminder ----------------------------------------------

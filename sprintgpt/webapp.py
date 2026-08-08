@@ -57,6 +57,7 @@ from .models import Goal, Profile
 from .platforms import PLATFORMS, RELEASES_URL, detect_platform
 from .planner import PlanContext, generate_plan, race_week_note
 from .predictor import PacePredictor
+from .recovery import install_crash_handler
 from .storage import Storage
 from .strava import StravaClient, StravaError, StravaTokens
 
@@ -1027,5 +1028,8 @@ def create_app() -> Flask:
         store.close()
         flash("Disconnected from Strava. Your synced runs are kept.", "success")
         return redirect(url_for("dashboard"))
+
+    # Detect crashes, auto-recover the fixable ones, and fail gracefully otherwise.
+    install_crash_handler(app)
 
     return app
