@@ -124,7 +124,7 @@ def _error_page(incident: str, healed_but_failed: bool) -> str:
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SprintGPT hit a snag</title>
+<title>Paceloop hit a snag</title>
 <style>
   html,body{{height:100%;margin:0}}
   body{{background:#0b0f17;color:#e7ecf5;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;

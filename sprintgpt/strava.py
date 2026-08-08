@@ -60,7 +60,7 @@ class _OAuthCallbackHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(
             b"<html><body style='font-family:sans-serif;text-align:center;margin-top:80px'>"
-            b"<h2>SprintGPT is connected to Strava.</h2>"
+            b"<h2>Paceloop is connected to Strava.</h2>"
             b"<p>You can close this tab and return to the terminal.</p></body></html>"
         )
 
@@ -89,7 +89,7 @@ class StravaClient:
     def _require_configured(self) -> None:
         if not self.configured:
             raise StravaError(
-                "This SprintGPT instance isn't set up for Strava yet. The app owner "
+                "This Paceloop instance isn't set up for Strava yet. The app owner "
                 "needs to set STRAVA_CLIENT_ID and STRAVA_CLIENT_SECRET in .env."
             )
 

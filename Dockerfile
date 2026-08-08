@@ -1,4 +1,4 @@
-# SprintGPT public server image.
+# Paceloop public server image.
 #   docker build -t sprintgpt .
 #   docker run -p 8000:8000 -v sprintgpt-data:/data \
 #     -e SPRINTGPT_SECRET=change-me sprintgpt

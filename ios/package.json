@@ -1,8 +1,8 @@
 {
-  "name": "sprintgpt-ios",
+  "name": "paceloop-ios",
   "version": "1.6.0",
   "private": true,
-  "description": "iOS (Capacitor) wrapper for SprintGPT. Loads the hosted SprintGPT server in a native WKWebView.",
+  "description": "iOS (Capacitor) wrapper for Paceloop. Loads the hosted Paceloop server in a native WKWebView.",
   "scripts": {
     "add:ios": "cap add ios",
     "sync": "cap sync ios",

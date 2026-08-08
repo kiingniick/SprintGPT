@@ -1,12 +1,12 @@
-# SprintGPT for Android (native app)
+# Paceloop for Android (native app)
 
-A native Android app that displays SprintGPT in a full-screen WebView. On first
+A native Android app that displays Paceloop in a full-screen WebView. On first
 launch it asks how to run:
 
-- **Run on this phone** — it starts the SprintGPT Python/Flask server *on the phone
+- **Run on this phone** — it starts the Paceloop Python/Flask server *on the phone
   itself* (via [Chaquopy](https://chaquo.com/chaquopy/)). No internet needed;
   everything, including the database, lives on the device.
-- **Connect to a server** — it loads a SprintGPT you host yourself (see the repo
+- **Connect to a server** — it loads a Paceloop you host yourself (see the repo
   root `README.md` → "Host it yourself"). Works over mobile data or Wi-Fi, and the
   app and website share the same account and data.
 

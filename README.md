@@ -1,11 +1,12 @@
 <div align="center">
 
-# 🏃 SprintGPT
+# 🏃 Paceloop
 
-### Your AI running coach, right in the browser.
+### The next generation of running coaches.
 
-Track every run, understand your heart‑rate training, predict race times, and get a
-personalized training plan — all built **by runners, for runners**.
+Paceloop is a professional AI running coach **as big as the sport itself** — it tracks
+every run, reads your heart‑rate training, predicts race times, and builds a
+personalized, periodized plan from *your* data. Built **by runners, for runners**.
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-web%20app-000000?logo=flask&logoColor=white)
@@ -14,7 +15,7 @@ personalized training plan — all built **by runners, for runners**.
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome%20%F0%9F%A4%9D-ff69b4)
 ![Made to go](https://img.shields.io/badge/made%20to%20go-brrrrrr-9d4edd)
 
-### 👉 [**Open SprintGPT (live)**](https://kiingniick.github.io/SprintGPT/) 👈
+### 👉 [**Open Paceloop (live)**](https://kiingniick.github.io/SprintGPT/) 👈
 
 This one permanent link always opens the current live server — bookmark it, share it, or paste it into the app's **Connect to a server** box.
 
@@ -24,7 +25,7 @@ This one permanent link always opens the current live server — bookmark it, sh
 
 ## 📖 Contents
 
-- [Why SprintGPT?](#-why-sprintgpt)
+- [Why Paceloop?](#-why-paceloop)
 - [Quick start](#-quick-start-2-minutes)
 - [Install by platform](#-install-by-platform)
 - [What you get](#-what-you-get)
@@ -42,10 +43,10 @@ This one permanent link always opens the current live server — bookmark it, sh
 
 ---
 
-## 🎯 Why SprintGPT?
+## 🎯 Why Paceloop?
 
 Most running apps either lock the good stuff behind a subscription or bury your
-numbers in noise. SprintGPT is different:
+numbers in noise. Paceloop is different:
 
 - **It's yours.** Your runs, goals, and heart‑rate profile live in your own private
   account. The coach answers from *your* data — no external APIs, no keys, no tracking.
@@ -89,7 +90,7 @@ python main.py --host 0.0.0.0  # expose on your local network (for phones)
 
 ## 📲 Install by platform
 
-> **Easiest of all:** open **[SprintGPT (live)](https://kiingniick.github.io/SprintGPT/)** and the
+> **Easiest of all:** open **[Paceloop (live)](https://kiingniick.github.io/SprintGPT/)** and the
 > homepage **auto-detects your device** and shows a one-tap installer — download the Android app,
 > "Add to Home Screen" on iPhone, or **one-click Install app** on Windows/macOS/Linux. You can jump
 > straight there anytime via **[/install](https://kiingniick.github.io/SprintGPT/install)** (also in
@@ -100,16 +101,16 @@ Prefer to do it by hand? Pick your device below for step-by-step instructions.
 <details>
 <summary><b>🤖 Android — install the native app (APK)</b></summary>
 
-SprintGPT ships as a **fully native Android app**. On first launch it asks how you want to run:
+Paceloop ships as a **fully native Android app**. On first launch it asks how you want to run:
 
 - **Run on this phone** — everything stays on your device and works **fully offline**. No server, no account sharing.
-- **Connect to a server** — point the app at a SprintGPT you [host yourself](#-host-it-yourself-run-over-the-internet). It runs over **mobile data or Wi-Fi**, and the app and website share the **same account and runs**.
+- **Connect to a server** — point the app at a Paceloop you [host yourself](#-host-it-yourself-run-over-the-internet). It runs over **mobile data or Wi-Fi**, and the app and website share the **same account and runs**.
 
 Install steps:
 
 1. On your phone, open the [live app](https://kiingniick.github.io/SprintGPT/) — the homepage detects Android and offers a **one-tap download** — or grab the APK directly: **[Download SprintGPT.apk](https://github.com/kiingniick/SprintGPT/releases/latest/download/SprintGPT.apk)**.
 2. Tap the downloaded file. If prompted, allow **Install from unknown sources** for your browser or files app.
-3. Open **SprintGPT** and pick a mode. (On-device mode takes a few seconds the first time to unpack its built-in Python runtime.)
+3. Open **Paceloop** and pick a mode. (On-device mode takes a few seconds the first time to unpack its built-in Python runtime.)
 
 > **Stays up to date.** On launch the app quietly checks for a newer release and, if
 > one exists, shows an **Update available** reminder with a one-tap download (you can
@@ -127,7 +128,7 @@ Install steps:
 <details>
 <summary><b>🍎 iPhone / iPad — install as a web app (or TestFlight)</b></summary>
 
-**Easiest (free, no App Store):** SprintGPT is an installable Progressive Web App with a
+**Easiest (free, no App Store):** Paceloop is an installable Progressive Web App with a
 real app icon:
 
 1. Open the [live app](https://kiingniick.github.io/SprintGPT/) in **Safari** (iOS only allows
@@ -145,7 +146,7 @@ Developer Program ($99/yr); the PWA above needs none of that.
 <summary><b>🪟 Windows — one-click install or run from source</b></summary>
 
 **Easiest:** open the [live app](https://kiingniick.github.io/SprintGPT/) in **Chrome or Edge** and
-click **Install app** on the homepage (or the install icon in the address bar). SprintGPT opens in its
+click **Install app** on the homepage (or the install icon in the address bar). Paceloop opens in its
 own window and pins to your Start menu — no Python needed.
 
 **Run your own server instead?** Install [Python 3.11+](https://www.python.org/downloads/windows/) (tick **"Add Python to PATH"**), then in PowerShell:
@@ -233,17 +234,17 @@ The APK lands in `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ## 📥 Bringing in your runs
 
-SprintGPT meets your data wherever it lives. Pick whichever is easiest:
+Paceloop meets your data wherever it lives. Pick whichever is easiest:
 
 ### 1. Free Strava export — *recommended, no subscription* ⭐
 
 Strava gates its API behind a paid tier, but **every athlete can export their full
-history for free**, and SprintGPT reads it directly.
+history for free**, and Paceloop reads it directly.
 
 1. Go to **Strava → Settings → My Account → [Download or Delete Your Account](https://www.strava.com/athlete/delete_your_account)**.
 2. Under **Download Request**, click **Request Your Archive**.
 3. Strava emails you a link (usually within a few hours).
-4. In SprintGPT, on the **"Import your Strava history"** card, upload the `.zip`
+4. In Paceloop, on the **"Import your Strava history"** card, upload the `.zip`
    (or its `activities.csv`). Distance, time, elevation, and average HR import instantly.
 
 > Every run keeps its Strava id, so re‑importing (or later live‑syncing) never
@@ -256,7 +257,7 @@ Your official meet times usually live on results sites, not in a training app. T
 
 1. Open **Meets** and search your full name.
 2. Pick your profile from the matches — the school/city subtitle helps you spot yourself.
-3. SprintGPT imports every distance race (800 m+ on the track, plus all cross country).
+3. Paceloop imports every distance race (800 m+ on the track, plus all cross country).
 
 - **Source today:** Athletic.net (US high‑school, college & club XC + track).
 - **Location‑aware:** set your city/state in Account settings and athletes from your
@@ -283,7 +284,7 @@ Times accept `mm:ss`, `hh:mm:ss`, or `2700s` / `45m` / `1.5h`.
 <details>
 <summary><b>Owner setup + per‑runner connection steps</b></summary>
 
-If you (the app owner) have Strava API access, SprintGPT is multi‑user for live sync.
+If you (the app owner) have Strava API access, Paceloop is multi‑user for live sync.
 
 **Owner setup (once):**
 1. Create an app at <https://www.strava.com/settings/api>.
@@ -294,7 +295,7 @@ If you (the app owner) have Strava API access, SprintGPT is multi‑user for liv
 **For each runner (in the browser):** click **Connect with Strava**, approve access,
 and runs import automatically. Use **Sync latest runs** anytime, or **Disconnect** to unlink.
 
-> Behind an HTTPS tunnel/proxy (Cloudflare, ngrok), SprintGPT trusts `X‑Forwarded‑*`
+> Behind an HTTPS tunnel/proxy (Cloudflare, ngrok), Paceloop trusts `X‑Forwarded‑*`
 > headers so the OAuth redirect uses the correct `https://` URL.
 </details>
 
@@ -326,7 +327,7 @@ Three ways, from simplest to most connected:
 ## 🌐 Host it yourself (run over the internet)
 
 Want your runs on **every device over mobile data**, with the phone app and website
-sharing one account? Run SprintGPT as a real server. It's the same app — just served by
+sharing one account? Run Paceloop as a real server. It's the same app — just served by
 a production web server (**waitress**) instead of the local dev server.
 
 ```bash
@@ -351,7 +352,7 @@ docker run -d -p 8000:8000 -v sprintgpt-data:/data \
 - The `-v sprintgpt-data:/data` volume keeps your database and session key across
   restarts and upgrades (the DB lives at `/data/sprintgpt.db`).
 - Front it with a reverse proxy that terminates HTTPS (Caddy, Nginx, or a Cloudflare
-  Tunnel). SprintGPT already trusts `X-Forwarded-*`, so external links stay `https://`.
+  Tunnel). Paceloop already trusts `X-Forwarded-*`, so external links stay `https://`.
 </details>
 
 <details>
@@ -389,7 +390,7 @@ for HTTPS. On Linux you can also use gunicorn if you prefer:
 gunicorn --workers 1 --threads 8 --bind 0.0.0.0:8000 wsgi:app
 ```
 
-> **Use one worker with several threads.** SprintGPT stores everything in a single
+> **Use one worker with several threads.** Paceloop stores everything in a single
 > SQLite file (WAL mode is enabled for concurrency); a single threaded worker avoids
 > cross-process write locks and is plenty for a running club or small community.
 </details>
@@ -403,6 +404,7 @@ gunicorn --workers 1 --threads 8 --bind 0.0.0.0:8000 wsgi:app
 | `APP_BASE_URL` | Public `https://` base used to build password‑reset links in emails. |
 | `ADMIN_EMAILS` | Who can see the `/admin` analytics dashboard. |
 | `SMTP_*` | Optional — send real password‑reset emails (see below). |
+| `SPRINTGPT_ATHLINKS_KEY` | Optional — widen meet search to **Athlinks** road/local races (see below). |
 
 > Once it's live, open the app, choose **Connect to a server**, and paste your URL — or
 > just open the URL in any browser and **Install** it as a PWA. Same account everywhere.
@@ -436,12 +438,39 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=you@gmail.com
 SMTP_PASSWORD=your_app_password      # Gmail: use an App Password, not your login
-SMTP_FROM=SprintGPT <you@gmail.com>
+SMTP_FROM=Paceloop <you@gmail.com>
 SMTP_USE_TLS=true
 APP_BASE_URL=https://your-public-url  # optional; used to build links in emails
 ```
 
 Reset tokens are random, stored **hashed**, single‑use, and expire after 1 hour.
+</details>
+
+<details>
+<summary><b>Broaden meet search with Athlinks (optional)</b></summary>
+
+Out of the box, meet search covers **Athletic.net** and **MileSplit** (US high‑school,
+college & club cross country and track, plus championship series and local road races).
+To also pull **adult / road / local racing** — 5Ks, 10Ks, half & full marathons, trail,
+and park runs — enable **[Athlinks](https://www.athlinks.com/)**:
+
+1. Grab a **free API key** at <https://athlinks.3scale.net/signup>.
+2. Add it to your `.env` (or environment) and restart:
+
+```
+SPRINTGPT_ATHLINKS_KEY=your_user_key_here
+```
+
+3. (Optional) verify it works and see live results:
+
+```powershell
+$env:SPRINTGPT_ATHLINKS_KEY = "your_user_key_here"
+python tools/athlinks_probe.py "Your Name"
+```
+
+Once a key is set, Athlinks shows up automatically in the meet‑search sources and the
+`/meets` page updates its description. No key? Nothing changes — the other two sources
+keep working exactly as before.
 </details>
 
 ---
@@ -539,7 +568,7 @@ sprintgpt/
   chat.py                # built-in data-driven coach chatbot engine
   themes.py              # account color-theme presets + custom palette logic
   importer.py            # manual + CSV + Strava-export import, unit parsing
-  meets.py               # import race results by name (Athletic.net XC + track)
+  meets.py               # import race results by name (Athletic.net, MileSplit, optional Athlinks)
   mailer.py              # SMTP email sender (password-reset links)
   analysis.py            # VDOT, paces, CTL/ATL/TSB, HR zones + TRIMP
   predictor.py           # endurance-aware, progressive race prediction
@@ -579,7 +608,7 @@ Released under the [MIT License](LICENSE) — do basically whatever, just keep t
 
 <div align="center">
 
-**SprintGPT is a training aid, not medical advice. Listen to your body.** 💚
+**Paceloop is a training aid, not medical advice. Listen to your body.** 💚
 
 Made to go **brrrrrr** by runners, for runners.
 

@@ -1,4 +1,4 @@
-"""Rasterize the SprintGPT logo (static/icon.svg) into PNG app icons.
+"""Rasterize the Paceloop logo (static/icon.svg) into PNG app icons.
 
 iOS "Add to Home Screen" does not support SVG apple-touch-icons, so we need
 real PNGs for the PWA to look like an app on iPhones. This redraws the same
@@ -59,7 +59,7 @@ def _rounded_mask(size: int, radius: int) -> Image.Image:
 def _draw_s(img: Image.Image) -> None:
     d = ImageDraw.Draw(img)
     f = _font(int(N * 0.66))
-    d.text((N / 2, N / 2 + int(N * 0.02)), "S", font=f, fill=INK, anchor="mm")
+    d.text((N / 2, N / 2 + int(N * 0.02)), "P", font=f, fill=INK, anchor="mm")
 
 
 def _draw_track(img: Image.Image) -> None:

@@ -1,5 +1,5 @@
 name: "💡 Feature idea"
-description: "Something that would make SprintGPT go even more brrrrrr"
+description: "Something that would make Paceloop go even more brrrrrr"
 title: "[Idea]: "
 labels: ["enhancement"]
 body:
@@ -12,7 +12,7 @@ body:
     attributes:
       label: The idea
       description: What do you want it to do?
-      placeholder: "It'd be sick if SprintGPT could..."
+      placeholder: "It'd be sick if Paceloop could..."
     validations:
       required: true
   - type: textarea

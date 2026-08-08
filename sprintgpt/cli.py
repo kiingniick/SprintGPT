@@ -1,4 +1,4 @@
-"""Command-line interface for SprintGPT."""
+"""Command-line interface for Paceloop."""
 from __future__ import annotations
 
 import argparse
@@ -279,7 +279,7 @@ def cmd_status(args: argparse.Namespace) -> None:
     summary.add_row("Form (TSB)", f"{fitness.tsb}  [{form_label}]")
     summary.add_row("VDOT (recent)", f"{fitness.recent_vdot}")
     summary.add_row("VDOT (best)", f"{fitness.best_vdot}")
-    console.print(Panel(summary, title="SprintGPT - Fitness Status", border_style="green"))
+    console.print(Panel(summary, title="Paceloop - Fitness Status", border_style="green"))
 
     # Weekly volume trend.
     series = weekly_volume_series(activities, weeks=8)
@@ -417,7 +417,7 @@ def cmd_plan(args: argparse.Namespace) -> None:
         f"{goal.race_date:%A, %b %d, %Y}\n"
         f"{len(plans)} week plan  |  starting volume ~{ctx.start_volume_km or 20:.0f} km/wk  |  "
         f"VDOT {fitness.recent_vdot or fitness.best_vdot or 'n/a'}",
-        title="SprintGPT Training Plan", border_style="green",
+        title="Paceloop Training Plan", border_style="green",
     ))
 
     show_weeks = plans if args.all else plans[: args.weeks]
@@ -499,7 +499,7 @@ def cmd_seed(args: argparse.Namespace) -> None:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="sprintgpt",
-        description="SprintGPT - your AI running coach.",
+        description="Paceloop - your AI running coach.",
     )
     sub = p.add_subparsers(dest="command", required=True)
 

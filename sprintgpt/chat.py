@@ -1,4 +1,4 @@
-"""SprintGPT's built-in coach chatbot.
+"""Paceloop's built-in coach chatbot.
 
 A privacy-friendly, offline coach: it answers questions by computing real numbers
 from the signed-in athlete's own data (runs, fitness, heart-rate zones, paces,
@@ -259,7 +259,7 @@ def build_reply(
     if re.search(r"\b(help|what can you do|commands|options)\b", q):
         return _help(bot)
     if re.search(r"\b(your name|who are you|what are you)\b", q):
-        return (f"I'm {bot}, your SprintGPT running coach. You can rename me anytime from the "
+        return (f"I'm {bot}, your Paceloop running coach. You can rename me anytime from the "
                 "chat header — it's just cosmetic, I'll still know all your training data.")
 
     if not has_data:

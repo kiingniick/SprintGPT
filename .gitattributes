@@ -1,4 +1,4 @@
-# SprintGPT is a Python project. Keep GitHub's language bar honest by not letting
+# Paceloop is a Python project. Keep GitHub's language bar honest by not letting
 # the web UI, the Android wrapper, and docs drown out the actual Python code.
 # (These are still real files — this only affects the language statistics.)
 sprintgpt/templates/**  linguist-vendored

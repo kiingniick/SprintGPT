@@ -1,4 +1,4 @@
-"""Run SprintGPT as a public, production-grade server.
+"""Run Paceloop as a public, production-grade server.
 
 Unlike ``python main.py`` (Flask's built-in development server, meant for local
 use), this serves the app with waitress: a battle-tested, cross-platform WSGI
@@ -23,7 +23,7 @@ app = create_app()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Serve SprintGPT for real users.")
+    parser = argparse.ArgumentParser(description="Serve Paceloop for real users.")
     parser.add_argument("--host", default=os.getenv("HOST", "0.0.0.0"))
     parser.add_argument("--port", type=int, default=int(os.getenv("PORT", "8000")))
     parser.add_argument("--threads", type=int, default=int(os.getenv("THREADS", "8")))
@@ -39,7 +39,7 @@ def main() -> None:
         app.run(host=args.host, port=args.port, threaded=True, use_reloader=False)
         return
 
-    print(f"SprintGPT is serving at http://{args.host}:{args.port}  (Ctrl+C to stop)")
+    print(f"Paceloop is serving at http://{args.host}:{args.port}  (Ctrl+C to stop)")
     serve(app, host=args.host, port=args.port, threads=args.threads)
 
 

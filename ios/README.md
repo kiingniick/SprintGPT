@@ -1,6 +1,6 @@
-# SprintGPT on iPhone / iPad 🍏
+# Paceloop on iPhone / iPad 🍏
 
-There are **two** ways to run SprintGPT on iOS. Pick based on whether you want to
+There are **two** ways to run Paceloop on iOS. Pick based on whether you want to
 pay Apple.
 
 | Path | Cost | Needs a Mac? | App Store / TestFlight? | Best for |
@@ -12,7 +12,7 @@ pay Apple.
 
 ## Path 1 — PWA (free, works right now) ✅
 
-No App Store, no Apple fee, no Mac. Because SprintGPT is a website, iOS can pin it
+No App Store, no Apple fee, no Mac. Because Paceloop is a website, iOS can pin it
 to the Home Screen and run it full-screen like an app (with the real app icon).
 
 1. Open **[the live app](https://kiingniick.github.io/SprintGPT/)** in **Safari**
@@ -42,7 +42,7 @@ users always talk to your self-hosted server.
 
 1. **Enroll** in the [Apple Developer Program](https://developer.apple.com/programs/enroll/) ($99/yr).
 2. In [App Store Connect](https://appstoreconnect.apple.com) → **Apps → +** →
-   create an app with bundle id **`com.sprintgpt.app`**.
+   create an app with bundle id **`com.paceloop.app`**.
 3. Create an **App Store Connect API key**: Users and Access → Integrations →
    App Store Connect API → generate a key with **App Manager** access. Download
    the `AuthKey_XXXX.p8` (you only get it once) and note the **Key ID** and

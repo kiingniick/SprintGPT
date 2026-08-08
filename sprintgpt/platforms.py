@@ -60,7 +60,7 @@ PLATFORMS = [
             "<code>SprintGPT-*.apk</code> file.",
             "If asked, allow <strong>Install from unknown sources</strong> for your "
             "browser or Files app, then confirm the install.",
-            "Open <strong>SprintGPT</strong> and choose <strong>Connect to a "
+            "Open <strong>Paceloop</strong> and choose <strong>Connect to a "
             "server</strong> (already filled in) or run it fully on your phone.",
         ],
         "note": "The app checks for updates on launch and reminds you when a newer "
@@ -77,7 +77,7 @@ PLATFORMS = [
             "Tap the <strong>Share</strong> button "
             "(the square with an up arrow).",
             "Choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.",
-            "Launch SprintGPT from the new icon — it opens full-screen like an app.",
+            "Launch Paceloop from the new icon — it opens full-screen like an app.",
         ],
         "note": "iOS only allows Home-Screen install from Safari, not Chrome.",
     },
@@ -92,7 +92,7 @@ PLATFORMS = [
             "(Chrome or Edge).",
             "Or use the <strong>install icon</strong> in the address bar, then "
             "<strong>Install</strong>.",
-            "SprintGPT opens in its own window and pins to your Start menu / taskbar.",
+            "Paceloop opens in its own window and pins to your Start menu / taskbar.",
         ],
         "note": "No button? Your browser may not support installs — just bookmark this page.",
     },
@@ -106,7 +106,7 @@ PLATFORMS = [
             "Click <strong>Install app</strong> above "
             "(Chrome or Edge).",
             "In Safari, use <strong>File → Add to Dock</strong> instead.",
-            "SprintGPT opens in its own window, ready in your Dock.",
+            "Paceloop opens in its own window, ready in your Dock.",
         ],
         "note": None,
     },
@@ -120,7 +120,7 @@ PLATFORMS = [
             "Click <strong>Install app</strong> above "
             "(Chrome, Chromium, or Edge).",
             "Or use your browser's <strong>Install app</strong> menu option.",
-            "SprintGPT gets its own launcher and window.",
+            "Paceloop gets its own launcher and window.",
         ],
         "note": None,
     },

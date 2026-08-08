@@ -1,7 +1,7 @@
 {
-  "name": "SprintGPT - AI Running Coach",
-  "short_name": "SprintGPT",
-  "description": "Track your running progress, heart-rate zones, and splits, and get personalized AI training plans.",
+  "name": "Paceloop - Professional AI Running Coach",
+  "short_name": "Paceloop",
+  "description": "The next generation of running coaches - a professional AI as big as the sport itself. Track progress, heart-rate zones, and splits, and get personalized AI training plans.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

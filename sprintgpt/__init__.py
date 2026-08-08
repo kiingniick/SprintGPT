@@ -1,4 +1,4 @@
-"""SprintGPT - an AI running coach.
+"""Paceloop - an AI running coach.
 
 Tracks your running progress from Strava (and manual imports), analyzes your
 fitness, and generates personalized workout plans.

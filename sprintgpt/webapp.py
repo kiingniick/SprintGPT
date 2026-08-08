@@ -1,4 +1,4 @@
-"""SprintGPT web application (Flask).
+"""Paceloop web application (Flask).
 
 The primary interface: each visitor gets their own private space (identified by a
 signed session cookie) where they can connect their Strava account, import runs,
@@ -52,7 +52,7 @@ from .importer import (
     parse_duration,
 )
 from .mailer import MailerError, send_email
-from .meets import MeetImportError, import_results, search_athletes
+from .meets import PROVIDERS, MeetImportError, import_results, search_athletes
 from .models import Goal, Profile
 from .platforms import PLATFORMS, RELEASES_URL, detect_platform
 from .planner import PlanContext, generate_plan, race_week_note
@@ -67,20 +67,20 @@ ZONE_COLORS = ["#4ade80", "#22d3ee", "#facc15", "#fb923c", "#f87171"]
 def _reset_email_text(link: str) -> str:
     return (
         "Hi,\n\n"
-        "We received a request to reset your SprintGPT password. Open the link "
+        "We received a request to reset your Paceloop password. Open the link "
         "below to choose a new one (it expires in 1 hour):\n\n"
         f"{link}\n\n"
         "Once you set a new password you'll be logged in automatically.\n\n"
         "If you didn't request this, you can safely ignore this email - your "
         "password won't change.\n\n"
-        "- SprintGPT"
+        "- Paceloop"
     )
 
 
 def _reset_email_html(link: str) -> str:
     return f"""\
 <div style="font-family:system-ui,Segoe UI,Arial,sans-serif;max-width:520px;margin:0 auto;color:#0f172a">
-  <h2 style="margin:0 0 12px">Reset your SprintGPT password</h2>
+  <h2 style="margin:0 0 12px">Reset your Paceloop password</h2>
   <p>We received a request to reset your password. Click the button below to
      choose a new one. This link expires in <strong>1 hour</strong>.</p>
   <p style="margin:24px 0">
@@ -613,7 +613,7 @@ def create_app() -> Flask:
         session.clear()
         session["uid"] = uid
         session.permanent = True
-        flash(f"Welcome to SprintGPT, {name or 'runner'}! Your account is ready.", "success")
+        flash(f"Welcome to Paceloop, {name or 'runner'}! Your account is ready.", "success")
         return redirect(url_for("dashboard"))
 
     @app.route("/login", methods=["GET", "POST"])
@@ -675,7 +675,7 @@ def create_app() -> Flask:
             if cfg.email_configured:
                 try:
                     send_email(
-                        cfg, email, "Reset your SprintGPT password",
+                        cfg, email, "Reset your Paceloop password",
                         _reset_email_text(link), _reset_email_html(link),
                     )
                 except MailerError as e:
@@ -941,6 +941,7 @@ def create_app() -> Flask:
         return render_template(
             "meets.html", q=q, matches=matches, error=error, searched=searched,
             home_city=home_city, home_state=home_state,
+            providers=[p.label for p in PROVIDERS.values()],
         )
 
     @app.route("/meets/import", methods=["POST"])

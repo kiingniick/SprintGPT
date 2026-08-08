@@ -1,6 +1,6 @@
 {
-  "appId": "com.sprintgpt.app",
-  "appName": "SprintGPT",
+  "appId": "com.paceloop.app",
+  "appName": "Paceloop",
   "webDir": "www",
   "backgroundColor": "#0b0f17",
   "server": {

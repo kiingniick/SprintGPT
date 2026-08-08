@@ -33,11 +33,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Hosts SprintGPT in a WebView. Two ways to run:
+ * Hosts Paceloop in a WebView. Two ways to run:
  *
  *  - On-device (default, fully offline): boot the embedded Python/Flask server
  *    and load it from http://127.0.0.1:5000/.
- *  - Remote server: point the app at a SprintGPT you host yourself, so it works
+ *  - Remote server: point the app at a Paceloop you host yourself, so it works
  *    over mobile data and your account/data sync with the website.
  *
  * The choice is stored in SharedPreferences and can be changed anytime from the
@@ -84,7 +84,7 @@ public class MainActivity extends Activity {
         ".s{width:34px;height:34px;border:3px solid #26314a;border-top-color:#34d399;border-radius:50%;" +
         "animation:spin .8s linear infinite;margin-top:22px}" +
         "@keyframes spin{to{transform:rotate(360deg)}}h1{font-size:20px;margin:0}p{color:#93a0b8;margin:8px 0 0}" +
-        "</style></head><body><div class='mark'>S</div><h1>Starting SprintGPT</h1>" +
+        "</style></head><body><div class='mark'>P</div><h1>Starting Paceloop</h1>" +
         "<p id='msg'>Warming up your coach&hellip;</p><div class='s'></div></body></html>";
 
     @Override
@@ -283,7 +283,7 @@ public class MainActivity extends Activity {
             return;
         }
         String msg = "A new version" + (name == null || name.isEmpty() ? "" : " (" + name + ")")
-                + " of SprintGPT is available.";
+                + " of Paceloop is available.";
         if (notes != null && !notes.isEmpty()) {
             msg += "\n\n" + notes;
         }
@@ -437,7 +437,7 @@ public class MainActivity extends Activity {
             ".ghost{background:#1b2436;color:#e7ecf5;border:1px solid #2b3650}" +
             ".hint{color:#6b7688;font-size:12px;margin-top:16px;text-align:center}" +
             "</style></head><body>" +
-            "<div class='mark'>S</div>" +
+            "<div class='mark'>P</div>" +
             "<h1>Choose how to run</h1>" +
             "<p class='sub'>You can switch anytime from the app menu.</p>" +
             errBlock +
@@ -448,10 +448,10 @@ public class MainActivity extends Activity {
             "</div>" +
             "<div class='card'>" +
             "<h2>Connect to a server</h2>" +
-            "<p>Point the app at a SprintGPT you host yourself. Works over mobile data and keeps the app and website in sync.</p>" +
+            "<p>Point the app at a Paceloop you host yourself. Works over mobile data and keeps the app and website in sync.</p>" +
             recoBlock +
             "<input id='url' type='url' inputmode='url' autocapitalize='none' autocorrect='off' spellcheck='false' " +
-            "placeholder='https://your-sprintgpt.example.com' value='" + escape(savedUrl) + "'>" +
+            "placeholder='https://your-paceloop.example.com' value='" + escape(savedUrl) + "'>" +
             "<button class='primary' onclick=\"SprintGPTNative.chooseServer(document.getElementById('url').value)\">Connect</button>" +
             "</div>" +
             "<div class='hint'>Tip: on the website, log in the same way to see the same runs.</div>" +
@@ -484,7 +484,7 @@ public class MainActivity extends Activity {
                         SharedPreferences p = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
                         web.loadDataWithBaseURL("https://sprintgpt.local/",
                             buildSetupHtml(p.getString(KEY_URL, ""),
-                                "Please enter a full address, like https://your-sprintgpt.example.com"),
+                                "Please enter a full address, like https://your-paceloop.example.com"),
                             "text/html", "utf-8", null);
                     }
                 });

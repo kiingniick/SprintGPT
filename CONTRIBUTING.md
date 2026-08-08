@@ -1,6 +1,6 @@
-# Contributing to SprintGPT 🏃‍♂️💨
+# Contributing to Paceloop 🏃‍♂️💨
 
-so you wanna make SprintGPT go **brrrrrr** even harder? absolute legend. welcome.
+so you wanna make Paceloop go **brrrrrr** even harder? absolute legend. welcome.
 
 This project is chill. You don't need to be a pro. If you can run a Python script and
 you've ever been passed by a 12-year-old at a park run, you're qualified. Let's go.
@@ -119,7 +119,7 @@ Please don't:
 - `final FINAL v2 real`
 
 **Release names** follow the same energy. Tag is boring (`v1.5`), the title is the party:
-- `SprintGPT 1.5 — <feature> goes brrrrrr`
+- `Paceloop 1.5 — <feature> goes brrrrrr`
 
 Basically: if it wouldn't make you smirk reading it back in 6 months, spice it up. 🌶️
 

@@ -1,7 +1,7 @@
 """On-device entry point.
 
 Chaquopy calls main(files_dir) from the Android app on a background thread. We
-point SprintGPT's storage and session secret at the app's private files
+point Paceloop's storage and session secret at the app's private files
 directory (the only writable location on Android), then run the Flask server on
 localhost so the WebView can load it like a normal website — except everything
 runs entirely on the phone.
