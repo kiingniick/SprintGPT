@@ -3,7 +3,7 @@
 so you wanna make SprintGPT go **brrrrrr** even harder? absolute legend. welcome.
 
 This project is chill. You don't need to be a pro. If you can run a Python script and
-you've ever been passed by a 12-year-old at parkrun, you're qualified. Let's go.
+you've ever been passed by a 12-year-old at a park run, you're qualified. Let's go.
 
 ---
 
