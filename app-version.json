@@ -1,7 +1,7 @@
 {
-  "versionCode": 7,
-  "versionName": "1.6",
+  "versionCode": 8,
+  "versionName": "1.7",
   "url": "https://github.com/kiingniick/SprintGPT/releases/latest",
   "apkUrl": "https://github.com/kiingniick/SprintGPT/releases/latest/download/SprintGPT.apk",
-  "notes": "Broader race search: now finds NXR/NXN cross country and local road races too."
+  "notes": "Paceloop is here! New name + icon, and the app now uses a permanent link so it keeps working even when the server address changes."
 }
